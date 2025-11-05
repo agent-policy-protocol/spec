@@ -194,11 +194,31 @@ giving websites a voice in how autonomous AI agents interact with them.
 
 ---
 
+
 ### 🏁 **Origin & Stewardship**
 
 The **Agent Policy Protocol (APoP)** was conceived by [**Arun Vijayarengan**](https://www.linkedin.com/in/arunvijayarengan), Founder & CEO of [**Superdom AI**](https://superdom.ai), as part of a broader mission to build a safer, more consent-driven agentic web.  
 
 Superdom AI initiated this open standard to ensure that the next generation of AI agents and websites can cooperate transparently —  
 balancing **innovation** with **respect for ownership, access, and user trust**.
+
+---
+
+
+### 🧩 **Backstory**
+
+In late 2025, public discussions around **AI agent access to websites** intensified after a post by **Aravind Srinivas**, CEO of [Perplexity AI](https://www.perplexity.ai), regarding Amazon's attempts to block their *Comet Assistant*.  
+In his statement, he wrote:
+
+> "We would be happy to work together with Amazon to figure out a win-win outcome for both us and them.  
+> But when it comes to attempts to block our Comet Assistant on Amazon and hurt our users —  
+> we will have to stand up for them and not get bullied by Amazon."
+
+📄 *Source:* [Perplexity AI Blog — “Bullying is not innovation”](https://www.perplexity.ai/hub/blog/bullying-is-not-innovation)
+
+This moment highlighted a growing tension in the emerging **agentic web** — between AI agents seeking to browse, summarize, and interact with content, and websites asserting control over how their data is accessed.  
+
+The **Agent Policy Protocol (APoP)** was created as a constructive solution to that tension —  
+a way for websites to clearly state their access rules, and for agents to respect them transparently, without conflict.
 
 ---
