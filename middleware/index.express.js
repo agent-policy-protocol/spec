@@ -48,7 +48,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("✅ APP Middleware active. Agent Policy enforced.");
+  res.send("✅ APoP Middleware active. Agent Policy enforced.");
 });
 
 app.listen(PORT, () => console.log(`Agent Policy middleware running on port ${PORT}`));

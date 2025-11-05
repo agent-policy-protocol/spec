@@ -11,7 +11,7 @@ export default function handler(req, res) {
   const effective = { ...policy.default, ...pathRule };
 
   if (!isAgent) {
-    res.status(200).send("✅ APP Middleware active. Agent Policy enforced.");
+    res.status(200).send("✅ APoP Middleware active. Agent Policy enforced.");
     return;
   }
 
@@ -32,7 +32,7 @@ export default function handler(req, res) {
   // Success
   res.setHeader("Agent-Policy", "allow read");
   res.setHeader("Agent-Policy-Remaining", effective.rate_limit.requests.toString());
-  res.status(200).send("✅ APP Middleware active. Agent Policy enforced.");
+  res.status(200).send("✅ APoP Middleware active. Agent Policy enforced.");
 }
 
 function matchPathRule(urlPath, policy) {
