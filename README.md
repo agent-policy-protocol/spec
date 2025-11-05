@@ -39,9 +39,10 @@ APoP introduces a simple, open mechanism that brings **balance** between innovat
 ---
 
 ### 💡 Origin Story
-This initiative was inspired by growing friction between AI agents and web platforms —  
-most notably a public discussion sparked by [Perplexity AI’s CEO](https://www.perplexity.ai/hub/blog/bullying-is-not-innovation)  
-after Amazon attempted to block their Comet Assistant.  
+This initiative was inspired by growing friction between AI agents and web platforms —  most notably a public discussion sparked by [Perplexity AI’s CEO](https://www.perplexity.ai/hub/blog/bullying-is-not-innovation) after Amazon attempted to block their Comet Assistant.  
+
+<img width="555" height="347" alt="image" src="https://github.com/user-attachments/assets/4f4ffbfb-1d54-4886-a0cb-0558d9a4499f" />
+
 
 > "We would be happy to work together with Amazon to figure out a win-win outcome for both us and them.  
 > But when it comes to attempts to block our Comet Assistant on Amazon and hurt our users —  
@@ -77,10 +78,7 @@ APoP emerged as a constructive path forward: an open, transparent, consent-based
 ---
 
 ### 🏁 Stewardship
-The Agent Policy Protocol (APoP) was initiated by [**Arun Vijayarengan**](https://www.linkedin.com/in/arunvijayarengan),  
-Founder & CEO of [**Superdom AI**](https://superdom.ai),  
-to ensure the next generation of AI agents and websites can cooperate transparently —  
-balancing **innovation** with **respect for access, ownership, and user trust**.
+The Agent Policy Protocol (APoP) was initiated by [**Arun Vijayarengan**](https://www.linkedin.com/in/arunvijayarengan), Founder & CEO of [**Superdom AI**](https://superdom.ai), to ensure the next generation of AI agents and websites can cooperate transparently —  balancing **innovation** with **respect for access, ownership, and user trust**.
 
 ---
 
