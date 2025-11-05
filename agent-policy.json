@@ -1,0 +1,39 @@
+{
+  "version": "0.1",
+  "default": {
+    "allow": ["read", "render"],
+    "disallow": ["data-extraction", "api-calls", "automated-purchases"],
+    "rate_limit": {
+      "requests": 100,
+      "per_seconds": 3600
+    },
+    "require_verification": true
+  },
+  "paths": [
+    {
+      "pattern": "/public/*",
+      "allow": ["read", "index"],
+      "require_verification": false
+    },
+    {
+      "pattern": "/api/private/*",
+      "disallow": ["read", "data-extraction"]
+    },
+    {
+      "pattern": "/admin/*",
+      "disallow": ["all"]
+    }
+  ],
+  "verification": {
+    "method": "pkix",
+    "registry": "https://registry.agentpolicy.org"
+  },
+  "contact": {
+    "email": "security@example.com",
+    "policy_url": "https://example.com/agent-policy"
+  },
+  "meta": {
+    "description": "Defines how AI agents may interact with this site under the Agent Policy Protocol (APP) v0.1.",
+    "last_updated": "2025-11-05T00:00:00Z"
+  }
+}
