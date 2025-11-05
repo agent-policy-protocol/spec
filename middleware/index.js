@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Load local agent-policy.json
-const policyPath = path.join(process.cwd(), "agent-policy.json");
+const policyPath = path.join(process.cwd(), "../agent-policy.json");
 const policy = JSON.parse(fs.readFileSync(policyPath, "utf-8"));
 
 function isAgent(req) {
