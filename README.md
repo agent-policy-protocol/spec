@@ -12,3 +12,10 @@ Robots.txt for the agentic web. The open standard that lets websites define how 
 | `verification`         | Specifies the method of verifying agent identity (e.g., `"pkix"`) and optionally the verification registry endpoint.                       |
 | `contact`              | Provides the responsible contact for questions, abuse reports, or policy clarifications.                                                   |
 | `meta`                 | Contains optional human-readable metadata such as description, maintainer info, or last update timestamp.                                  |
+
+
+### Notes
+Place agent-policy.json in your site’s root (e.g. https://example.com/agent-policy.json), just like robots.txt.
+Agents should fetch and respect this file before interacting with your website.
+Use "require_verification": true for sensitive endpoints.
+Path patterns support simple prefix matching using * (e.g. "/public/*").
