@@ -1,0 +1,13 @@
+{
+  "name": "agent-policy-middleware",
+  "version": "0.1.0",
+  "description": "Reference Express.js middleware for the Agent Policy Protocol (APP)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
+  }
+}
