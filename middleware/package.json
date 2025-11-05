@@ -1,6 +1,7 @@
 {
   "name": "agent-policy-middleware",
   "version": "0.1.0",
+   "type": "module",
   "description": "Reference Express.js middleware for the Agent Policy Protocol (APP)",
   "main": "index.js",
   "scripts": {
