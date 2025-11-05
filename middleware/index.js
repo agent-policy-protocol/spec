@@ -1,54 +1,44 @@
-import express from "express";
 import fs from "fs";
 import path from "path";
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+export default function handler(req, res) {
+  // Load the policy from one level up (root)
+  const policyPath = path.join(process.cwd(), "../agent-policy.json");
+  const policy = JSON.parse(fs.readFileSync(policyPath, "utf-8"));
 
-// Load local agent-policy.json
-const policyPath = path.join(process.cwd(), "../agent-policy.json");
-const policy = JSON.parse(fs.readFileSync(policyPath, "utf-8"));
+  const isAgent = !!req.headers["agent-name"];
+  const pathRule = matchPathRule(req.url, policy);
+  const effective = { ...policy.default, ...pathRule };
 
-function isAgent(req) {
-  return req.header("Agent-Name") !== undefined;
+  if (!isAgent) {
+    res.status(200).send("✅ APP Middleware active. Agent Policy enforced.");
+    return;
+  }
+
+  // Require verification
+  if (effective.require_verification && !req.headers["agent-keyid"]) {
+    res.setHeader("WWW-Agent-Verify", "/agent-verify");
+    res.status(432).send("Agent Verification Required");
+    return;
+  }
+
+  // Disallow read example
+  if ((effective.disallow || []).includes("read")) {
+    res.setHeader("Agent-Policy", "block unverified");
+    res.status(430).send("Agent Policy Violation");
+    return;
+  }
+
+  // Success
+  res.setHeader("Agent-Policy", "allow read");
+  res.setHeader("Agent-Policy-Remaining", effective.rate_limit.requests.toString());
+  res.status(200).send("✅ APP Middleware active. Agent Policy enforced.");
 }
 
-function matchPathRule(urlPath) {
+function matchPathRule(urlPath, policy) {
   for (const rule of policy.paths || []) {
     const pattern = rule.pattern.replace("*", "");
     if (urlPath.startsWith(pattern)) return rule;
   }
   return null;
 }
-
-app.use((req, res, next) => {
-  if (!isAgent(req)) return next(); // skip humans
-
-  const agentName = req.header("Agent-Name");
-  const keyId = req.header("Agent-KeyId");
-  const pathRule = matchPathRule(req.path);
-  const effective = { ...policy.default, ...pathRule };
-
-  // Require verification
-  if (effective.require_verification && !keyId) {
-    res.set("WWW-Agent-Verify", "/agent-verify");
-    return res.status(432).send("Agent Verification Required");
-  }
-
-  // Disallowed action check
-  if ((effective.disallow || []).includes("read")) {
-    res.set("Agent-Policy", "block unverified");
-    return res.status(430).send("Agent Policy Violation");
-  }
-
-  // Success path
-  res.set("Agent-Policy", "allow read");
-  res.set("Agent-Policy-Remaining", effective.rate_limit.requests.toString());
-  next();
-});
-
-app.get("/", (req, res) => {
-  res.send("✅ APP Middleware active. Agent Policy enforced.");
-});
-
-app.listen(PORT, () => console.log(`Agent Policy middleware running on port ${PORT}`));
