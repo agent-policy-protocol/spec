@@ -10,8 +10,7 @@ The open standard that lets websites define how AI agents can access and interac
 `agent-policy.json` defines how AI agents are allowed to interact with your website —  
 what they can access, how often, and whether they must verify identity.  
 
-Think of it as **robots.txt for the agentic web**, built under the **Agent Policy Protocol (APoP)** standard.  
-Place it at your site root:  
+#### Think of it as **robots.txt for the agentic web**, built under the **Agent Policy Protocol (APoP)** standard.  Place it at your site root:  
 https://example.com/agent-policy.json
 ---
 
