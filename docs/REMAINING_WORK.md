@@ -3,7 +3,7 @@
 **Last Updated**: 2026-02-14  
 **Phase 1**: Specification & Foundation — ✅ COMPLETE  
 **Next Up**: Phase 2 (Reference Implementations)  
-**Source**: Aligned with [prompts/apop_strategic_roadmap.md](../prompts/apop_strategic_roadmap.md)
+**Source**: Aligned with [STRATEGIC_ROADMAP.md](STRATEGIC_ROADMAP.md)
 
 ---
 
@@ -11,7 +11,7 @@
 
 This document tracks all remaining work items from the APoP v1.0 implementation plan. Each phase includes specific deliverables, estimated effort, and file-level action plans.
 
-Cross-reference: The strategic roadmap ([apop_strategic_roadmap.md](../prompts/apop_strategic_roadmap.md)) covers business strategy, partnerships, messaging, budget, and revenue targets. This file focuses on **implementation tasks only**.
+Cross-reference: The strategic roadmap ([STRATEGIC_ROADMAP.md](STRATEGIC_ROADMAP.md)) covers business strategy, partnerships, messaging, budget, and revenue targets. This file focuses on **implementation tasks only**.
 
 ---
 
@@ -454,7 +454,7 @@ See strategic roadmap for pricing model: Free / Pro ($49/mo) / Business ($199/mo
 
 ## Items Tracked in Strategic Roadmap Only (Not Implementation Tasks)
 
-The following are tracked in [prompts/apop_strategic_roadmap.md](../prompts/apop_strategic_roadmap.md) and **not duplicated here**:
+The following are tracked in [STRATEGIC_ROADMAP.md](STRATEGIC_ROADMAP.md) and **not duplicated here**:
 
 - Partnership strategy (Tier 1/2/3 targets: Google, Anthropic, WordPress, LangChain, Cloudflare, NYT, EFF)
 - Budget breakdown ($545K total for 2026)
