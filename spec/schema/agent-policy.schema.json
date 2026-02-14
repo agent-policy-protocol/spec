@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
   "title": "Agent Policy Protocol (APoP) v1.0 Manifest",
-  "description": "Defines how AI agents may interact with a website — what they can access, what actions are allowed, rate limits, and verification requirements. Part of the Agent Policy Protocol (APoP) standard.",
+  "description": "Defines how AI agents may interact with a website — what they can access, what actions are allowed, rate limits, and verification requirements. Part of the Agent Policy Protocol (APoP) standard. Note: The $id URI is the canonical identifier for this schema. The schema is currently hosted at https://github.com/agent-policy-protocol/spec/blob/main/spec/schema/agent-policy.schema.json.",
   "type": "object",
   "required": ["version", "defaultPolicy"],
   "properties": {
@@ -19,7 +19,7 @@
     },
     "policyUrl": {
       "type": "string",
-      "description": "Canonical URL where this policy is hosted (e.g., https://example.com/.well-known/agent-policy.json).",
+      "description": "RECOMMENDED. Canonical URL where this policy is hosted (e.g., https://example.com/.well-known/agent-policy.json). Without this, error responses cannot reference the policy.",
       "format": "uri"
     },
     "defaultPolicy": {
@@ -92,17 +92,8 @@
       "required": ["allow"],
       "properties": {
         "allow": {
-          "oneOf": [
-            {
-              "type": "boolean",
-              "description": "If true, access is allowed by default. If false, access is denied."
-            },
-            {
-              "type": "array",
-              "description": "List of explicitly allowed action types.",
-              "items": { "$ref": "#/$defs/ActionType" }
-            }
-          ]
+          "type": "boolean",
+          "description": "If true, access is allowed by default. If false, access is denied."
         },
         "disallow": {
           "type": "array",
@@ -111,7 +102,7 @@
         },
         "actions": {
           "type": "array",
-          "description": "Explicit list of permitted action types (alternative to boolean allow).",
+          "description": "Explicit list of permitted action types. Use this array to enumerate allowed actions alongside 'allow: true'.",
           "items": { "$ref": "#/$defs/ActionType" }
         },
         "rateLimit": {
@@ -136,13 +127,8 @@
           "examples": ["/public/*", "/api/**", "/admin/*", "/checkout/*"]
         },
         "allow": {
-          "oneOf": [
-            { "type": "boolean" },
-            {
-              "type": "array",
-              "items": { "$ref": "#/$defs/ActionType" }
-            }
-          ]
+          "type": "boolean",
+          "description": "If true, access is allowed on this path. If false, access is denied."
         },
         "disallow": {
           "type": "array",

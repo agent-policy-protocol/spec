@@ -59,7 +59,7 @@
   "metadata": {
     "description": "Defines how AI agents may interact with this site under the Agent Policy Protocol (APoP) v1.0.",
     "owner": "Example Corp",
-    "lastModified": "2025-02-14T00:00:00Z",
+    "lastModified": "2026-02-14T00:00:00Z",
     "license": "Apache-2.0"
   },
   "interop": {

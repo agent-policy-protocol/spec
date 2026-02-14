@@ -151,6 +151,8 @@ Build production-quality middleware and SDKs that demonstrate the v1.0 spec in p
 - [ ] Move current `middleware/` enforcement logic into `sdk/node/` as the reference implementation
 - [ ] Add JSON Schema validation using `ajv` library
 - [ ] Add rate limiting state (in-memory + Redis adapter)
+- [ ] Implement actual rate limit tracking (in-memory counter + Redis adapter) — current `Agent-Policy-Rate-Remaining` header reflects max value, not actual remaining
+- [ ] Implement signature verification (Ed25519, ES256 at minimum) — current SDK only checks for header presence, not cryptographic validity
 - [ ] Add proper logging (pino or winston)
 - [ ] Keep `middleware/` as a thin demo that imports from `sdk/node/`
 

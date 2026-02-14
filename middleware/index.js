@@ -135,6 +135,8 @@ export default function handler(req, res) {
       "Agent-Policy-Rate-Limit",
       `${effective.rateLimit.requests}/${effective.rateLimit.window}`
     );
+    // NOTE: This is the configured max value, not actual remaining.
+    // Real rate limit tracking (in-memory/Redis) is not yet implemented.
     res.setHeader(
       "Agent-Policy-Rate-Remaining",
       effective.rateLimit.requests.toString()
@@ -164,7 +166,7 @@ function matchPathPolicy(urlPath, pathPolicies) {
 function pathMatches(urlPath, pattern) {
   if (pattern.endsWith("/**")) {
     const prefix = pattern.slice(0, -3);
-    return urlPath.startsWith(prefix);
+    return urlPath === prefix || urlPath.startsWith(prefix + "/");
   }
   if (pattern.endsWith("/*")) {
     const prefix = pattern.slice(0, -2);

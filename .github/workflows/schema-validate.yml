@@ -42,8 +42,9 @@ jobs:
 
       - name: Validate schema is valid JSON Schema
         run: |
-          node -e "
-            const schema = require('./spec/schema/agent-policy.schema.json');
+          node --input-type=module -e "
+            import { readFileSync } from 'fs';
+            const schema = JSON.parse(readFileSync('./spec/schema/agent-policy.schema.json', 'utf-8'));
             console.log('Schema title:', schema.title);
             console.log('Schema version:', schema.properties.version.default);
             console.log('Required fields:', schema.required);

@@ -217,6 +217,26 @@ npm test         # Run tests with vitest
 npm run lint     # Type-check without emitting
 ```
 
+## Limitations
+
+### Rate Limiting
+
+The current SDK evaluates rate limit _configuration_ from the policy and
+includes `Agent-Policy-Rate-Limit` headers in responses, but does **not**
+track actual request counts. The `Agent-Policy-Rate-Remaining` header
+reflects the configured maximum, not the actual remaining quota.
+
+To enforce real rate limits, integrate a rate limiting backend
+(in-memory, Redis, etc.) alongside the SDK. A built-in rate limiter
+with pluggable backends is planned for a future release.
+
+### Signature Verification
+
+The SDK checks for the _presence_ of `Agent-Signature` or `Agent-VC`
+headers when `requireVerification: true`, but does not perform
+cryptographic signature validation. Actual verification must be
+implemented by the consuming application.
+
 ## License
 
 Apache-2.0

@@ -32,6 +32,14 @@ describe("Path Matching — pathMatches() unit tests", () => {
     expect(pathMatches("/other/path", "/deep/nested/**")).toBe(false);
   });
 
+  it("should NOT match /** when path shares prefix but not segment boundary", () => {
+    expect(pathMatches("/deep/nestedXYZ", "/deep/nested/**")).toBe(false);
+  });
+
+  it("should match /** for exact prefix path (without trailing slash)", () => {
+    expect(pathMatches("/deep/nested", "/deep/nested/**")).toBe(true);
+  });
+
   it("should handle root path patterns", () => {
     expect(pathMatches("/", "/")).toBe(true);
     expect(pathMatches("/anything", "/")).toBe(false);

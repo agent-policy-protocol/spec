@@ -92,8 +92,8 @@ export interface RateLimit {
  * A set of rules governing agent access (used as defaultPolicy and within PathPolicy).
  */
 export interface PolicyRule {
-  /** If boolean: true = allow, false = deny. If array: list of allowed action types. */
-  allow: boolean | ActionType[];
+  /** If true, access is allowed. If false, access is denied. */
+  allow: boolean;
   /** Explicitly disallowed action types. Takes precedence over `allow`. */
   disallow?: ActionType[];
   /** Explicit list of permitted action types (alternative to boolean allow). */
@@ -110,8 +110,8 @@ export interface PolicyRule {
 export interface PathPolicy {
   /** URL path pattern. Supports glob-style wildcards: * (single segment), ** (multiple segments). */
   path: string;
-  /** Allow/deny/action list for this path. */
-  allow?: boolean | ActionType[];
+  /** Allow/deny for this path. */
+  allow?: boolean;
   /** Explicitly disallowed action types on this path. */
   disallow?: ActionType[];
   /** Explicit list of permitted action types. */

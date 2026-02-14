@@ -200,7 +200,7 @@ Formalize four discovery methods (prioritized):
 4. **DNS TXT Record**: `_agent-policy.example.com TXT "v=apop1; url=https://example.com/.well-known/agent-policy.json"`  
    — For domain-wide policy declaration. Follows DMARC/SPF pattern.
 
-**Fallback chain**: Agents SHOULD check in order: DNS TXT → Well-known URI → HTTP Header → HTML Meta → `robots.txt` (legacy compatibility).
+**Fallback chain**: Agents SHOULD check in order: Well-known URI → HTTP Header → HTML Meta → DNS TXT → `robots.txt` (legacy compatibility).
 
 ### Task 1.3: Agent Identification & Verification Spec
 

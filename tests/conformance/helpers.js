@@ -10,7 +10,7 @@ import express from "express";
 function pathMatches(urlPath, pattern) {
   if (pattern.endsWith("/**")) {
     const prefix = pattern.slice(0, -3);
-    return urlPath.startsWith(prefix);
+    return urlPath === prefix || urlPath.startsWith(prefix + "/");
   }
   if (pattern.endsWith("/*")) {
     const prefix = pattern.slice(0, -2);
@@ -156,6 +156,8 @@ export function createApp(policy) {
         "Agent-Policy-Rate-Limit",
         `${effective.rateLimit.requests}/${effective.rateLimit.window}`
       );
+      // NOTE: This is the configured max value, not actual remaining.
+      // Real rate limit tracking (in-memory/Redis) is not yet implemented.
       res.set(
         "Agent-Policy-Rate-Remaining",
         effective.rateLimit.requests.toString()

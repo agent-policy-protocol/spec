@@ -116,8 +116,8 @@ Servers respond with policy enforcement headers:
 | Code    | Name                        | Meaning                                  |
 | ------- | --------------------------- | ---------------------------------------- |
 | **430** | Agent Policy Violation      | The agent attempted a disallowed action  |
-| **431** | Agent Rate Limited          | The agent exceeded its rate limit        |
-| **432** | Agent Verification Required | The agent must verify its identity first |
+| **438** | Agent Rate Limited          | The agent exceeded its rate limit        |
+| **439** | Agent Verification Required | The agent must verify its identity first |
 
 ### 5. Request Flow
 
@@ -151,7 +151,7 @@ A standalone serverless function handler designed for deployment on Vercel. It:
 - Loads `agent-policy.json` from the project root.
 - Detects agent requests by checking for the `Agent-Name` header.
 - Matches the request URL against path-specific rules.
-- Enforces verification requirements (responds with `432` if `Agent-KeyId` is missing).
+- Enforces verification requirements (responds with `439` if `Agent-KeyId` is missing).
 - Blocks disallowed actions (responds with `430`).
 - Sets `Agent-Policy` and `Agent-Policy-Remaining` response headers on success.
 
@@ -176,7 +176,7 @@ The middleware includes a `vercel.json` that routes all incoming requests (`/(.*
 | Mode           | Behavior                                                                              |
 | -------------- | ------------------------------------------------------------------------------------- |
 | **Advisory**   | Logs and tags violations but still serves responses. Useful for gradual rollout.      |
-| **Strict**     | Blocks unverified or disallowed agents outright with `430` or `432` responses.        |
+| **Strict**     | Blocks unverified or disallowed agents outright with `430` or `439` responses.        |
 | **Rate-Limit** | Enforces request caps from `rate_limit` and communicates remaining quota via headers. |
 
 ---
