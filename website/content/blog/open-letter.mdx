@@ -1,0 +1,110 @@
+---
+title: "An Open Letter to Google, Anthropic, and Every AI Agent Builder"
+description: "The agentic web needs a shared authorization standard. Here's what we're asking every major AI company to do — and why it matters for the future of the open web."
+date: "2026-02-10"
+author:
+  name: "Arun Vijayarengan"
+  title: "Founder & CEO, Superdom AI"
+  url: "https://www.linkedin.com/in/arunvijayarengan"
+  avatar: "/authors/arun.jpg"
+tags: ["open-letter", "industry", "standards"]
+---
+
+To the teams building AI agents at Google, Anthropic, OpenAI, Microsoft, Meta, Apple, and every startup in between:
+
+We're writing to you because the web is at an inflection point — and what happens next depends on the choices you make.
+
+## The Current State of Affairs
+
+Your AI agents are already browsing the web on behalf of hundreds of millions of users. They summarize articles, compare products, fill out forms, execute transactions, and interact with web applications in ways that were unimaginable five years ago.
+
+This is genuinely exciting. The agentic web represents the next evolution of how humans interact with information and services.
+
+But there's a problem: **website owners have no standardized way to express consent.**
+
+Right now, a news publisher can't tell your agent "you may link to our articles but not summarize them." An e-commerce site can't say "you may show our prices but not undercut them with AI-generated comparison pages." A healthcare provider can't enforce "never extract patient-facing content for training data."
+
+The only tool available — `robots.txt` — was designed in 1994 for search engine crawlers. It's a blunt instrument in an age that requires precision.
+
+## What We're Proposing
+
+The **Agent Policy Protocol (APoP)** is an open standard — Apache 2.0 licensed, community-governed — that gives website owners a machine-readable way to express:
+
+- **What actions** agents can and cannot take (read, summarize, extract, train, execute)
+- **Where** those rules apply (path-level policies with glob patterns)
+- **Who** is allowed (agent identity verification via PKIX, DID, or allowlists)
+- **How often** (rate limits per agent, per path, per time window)
+- **How to discover** the policy (well-known URI, HTTP headers, HTML meta tags, DNS)
+
+It's a JSON document. It takes 5 minutes to create. It works with existing infrastructure.
+
+## What We're Asking
+
+### To Google (Chrome, Gemini, Search)
+
+**Recognize APoP in Chrome.** When Chrome's AI features (Gemini integration, Tab Groups AI, etc.) interact with a website, check for `agent-policy.json` first. Respect the declared permissions. Show users when a site has an agent policy, just as you show the padlock for HTTPS.
+
+**Index APoP policies in Search.** Just as you read `robots.txt` and `sitemap.xml`, discover and index `agent-policy.json`. Use it to inform how Gemini interacts with web content in AI Overviews.
+
+### To Anthropic (Claude, MCP)
+
+**Integrate APoP with MCP.** The Model Context Protocol already provides a framework for tools and context. APoP provides the authorization layer that MCP currently lacks. When Claude accesses a website via MCP, check the site's agent policy first.
+
+**Ship APoP support in Claude.** When Claude browses the web (via computer use or API), discover and respect `agent-policy.json`. Return `430 Agent Action Not Allowed` awareness in your SDK.
+
+### To OpenAI (ChatGPT, GPTs, Agents)
+
+**Add APoP headers to GPT browsing.** When ChatGPT browses the web, send `Agent-Name`, `Agent-Version`, and `Agent-Intent` headers. Respect the policies you discover.
+
+**Support APoP in the Assistants API.** When developers build agents with your API, provide built-in APoP discovery and enforcement — so every agent built on your platform is a good citizen by default.
+
+### To Browser Vendors (Arc, Firefox, Safari, Brave)
+
+**Add `agent-policy` as a recognized meta tag.** Just as browsers understand `<meta name="robots">`, recognize `<meta name="agent-policy">` and surface it in developer tools.
+
+**Display agent policy status.** Show users and developers when a site has declared an agent policy — similar to security indicators.
+
+### To Agent Framework Builders (LangChain, CrewAI, AutoGPT, BabyAGI)
+
+**Add APoP middleware to your frameworks.** Before your agents make HTTP requests, check for the target site's agent policy. Make policy-aware agents the default, not the exception.
+
+**Include APoP in your documentation.** Teach developers building agents that respecting website policies is fundamental, not optional.
+
+### To Every AI Company
+
+**Send proper headers.** At minimum, identify your agents with `Agent-Name` and `Agent-Intent` headers. Let website owners know who's visiting and why.
+
+**Respect 430 responses.** When a site returns `430 Agent Action Not Allowed`, stop. Don't retry. Don't circumvent. Treat it like a `403` — but one that tells you exactly what went wrong.
+
+**Join the standard.** APoP is open. It's Apache 2.0 licensed. We want your input, your contributions, your criticism. The standard gets better with more voices.
+
+## Why This Matters
+
+The open web is built on consent. Users consent to cookies. Developers consent to APIs via OAuth. Websites consent to search indexing via `robots.txt`.
+
+The agentic web needs its own consent layer. Without one, we'll see:
+
+- **Lawsuits** — content owners suing AI companies (already happening)
+- **Walls** — websites blocking all bot traffic (already happening)
+- **Fragmentation** — every AI company negotiating bilateral deals (already happening)
+
+APoP offers a better path: a shared, machine-readable standard that aligns incentives. Websites that want AI agent traffic can express exactly how. Websites that don't can say so clearly. And agents have a reliable way to understand and respect those wishes.
+
+## The Invitation
+
+APoP is live today. The specification, SDKs (Node.js and Python), conformance tests, and 9 example policies are all open source.
+
+We're not asking you to adopt something proprietary. We're asking you to help build something open.
+
+- **[Read the spec](https://agentpolicy.org/docs/specification/overview)**
+- **[Star the repo](https://github.com/agent-policy-protocol/spec)**
+- **[Try the playground](https://agentpolicy.org/playground)**
+- **[Join the discussion](https://github.com/agent-policy-protocol/spec/discussions)**
+
+The agentic web will be defined by the standards we set today. Let's set the right ones.
+
+---
+
+_Arun Vijayarengan_
+_Founder & CEO, Superdom AI Research Labs_
+_On behalf of the APoP community_

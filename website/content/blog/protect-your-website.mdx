@@ -1,0 +1,149 @@
+---
+title: "Protect Your Website from AI Agents in 5 Minutes"
+description: "A step-by-step guide to creating and deploying an agent-policy.json file to control how AI agents interact with your website."
+date: "2026-02-12"
+author:
+  name: "Arun Vijayarengan"
+  title: "Founder & CEO, Superdom AI"
+  url: "https://www.linkedin.com/in/arunvijayarengan"
+  avatar: "/authors/arun.jpg"
+tags: ["tutorial", "getting-started"]
+---
+
+AI agents are already visiting your website. They're summarizing your content, extracting your data, and in some cases, taking actions you never authorized. The good news: you can take control in under 5 minutes.
+
+## Step 1: Create Your Policy
+
+Create a file called `agent-policy.json`:
+
+```json
+{
+  "apopVersion": "1.0",
+  "policyVersion": "1.0.0",
+  "defaultPolicy": {
+    "allowedActions": ["read", "navigate"],
+    "disallowedActions": ["summarize", "extract", "train", "execute"],
+    "rateLimit": {
+      "maxRequests": 60,
+      "windowSeconds": 60
+    }
+  },
+  "contact": {
+    "name": "Your Name",
+    "email": "you@example.com",
+    "url": "https://example.com"
+  }
+}
+```
+
+This policy says: agents can read your pages and follow links, but they **cannot** summarize your content, extract data, use it for training, or execute actions. They're limited to 60 requests per minute.
+
+Don't want to write JSON by hand? **[Use the playground →](/playground)** to build your policy visually.
+
+## Step 2: Deploy It
+
+You have three options for serving your policy file.
+
+### Option A: Static File (simplest)
+
+Place the file at `/.well-known/agent-policy.json` on your web server:
+
+```bash
+# Nginx / Apache — just copy the file
+mkdir -p .well-known
+cp agent-policy.json .well-known/agent-policy.json
+```
+
+### Option B: Express Middleware (Node.js)
+
+```bash
+npm install @anthropic/agentpolicy
+```
+
+```typescript
+import express from "express";
+import { createMiddleware } from "@anthropic/agentpolicy/express";
+
+const app = express();
+
+app.use(
+  createMiddleware({
+    policyPath: "./agent-policy.json",
+  }),
+);
+
+app.listen(3000);
+```
+
+The middleware automatically:
+
+- Serves the policy at `/.well-known/agent-policy.json`
+- Validates agent requests against your policy
+- Returns `430 Agent Action Not Allowed` for violations
+- Adds APoP headers to every response
+
+### Option C: Vercel (zero-config)
+
+Just put the file in your `public` directory:
+
+```
+public/
+  .well-known/
+    agent-policy.json
+```
+
+Deploy to Vercel and it's live. That's it.
+
+## Step 3: Test It
+
+Verify your policy is accessible:
+
+```bash
+curl -s https://yoursite.com/.well-known/agent-policy.json | head -20
+```
+
+Now simulate an agent trying to do something disallowed:
+
+```bash
+curl -i \
+  -H "Agent-Name: TestBot/1.0" \
+  -H "Agent-Intent: extract" \
+  https://yoursite.com/api/data
+```
+
+If you're using the middleware, you'll see:
+
+```
+HTTP/1.1 430 Agent Action Not Allowed
+Agent-Policy: /.well-known/agent-policy.json
+Content-Type: application/json
+
+{
+  "error": "agent_action_not_allowed",
+  "message": "Action 'extract' is not permitted by the site's agent policy",
+  "policyUrl": "/.well-known/agent-policy.json"
+}
+```
+
+**Status 430** is APoP's custom HTTP status code — it tells the agent exactly why access was denied and where to find the policy.
+
+## What About Agents That Don't Respect the Policy?
+
+This is the right question. APoP works on two levels:
+
+1. **Cooperative agents** (most commercial AI agents) — they discover and respect policies because it's in their interest. Violating policies risks being blocked entirely.
+
+2. **Non-cooperative agents** — the middleware actively enforces policies by inspecting headers and returning 430 responses. Combined with rate limiting, this provides real protection.
+
+As APoP adoption grows, major AI providers (Google, Anthropic, OpenAI) will have market pressure to respect these policies — just as they currently respect `robots.txt`.
+
+## Next Steps
+
+You've protected your site. Here's what to explore next:
+
+- **[Path-specific policies](/docs/specification/overview)** — different rules for different sections
+- **[Agent verification](/docs/specification/agent-identification)** — require cryptographic identity
+- **[9 policy templates](/docs/examples/news-publisher)** — pre-built policies for common use cases
+- **[Join the community](/community)** — help shape the standard
+
+The agentic web is here. Make sure your website has a voice in how agents interact with it.

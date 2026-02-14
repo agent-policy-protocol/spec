@@ -1,0 +1,89 @@
+---
+title: "Beyond robots.txt: Why AI Agents Need More Than Crawl Rules"
+description: "robots.txt handles crawlers brilliantly — but AI agents summarize, transact, and act autonomously. The agentic web needs an additional standard built for this new reality."
+date: "2026-02-14"
+author:
+  name: "Arun Vijayarengan"
+  title: "Founder & CEO, Superdom AI"
+  url: "https://www.linkedin.com/in/arunvijayarengan"
+  avatar: "/authors/arun.jpg"
+tags: ["standard", "robots-txt", "agentic-web"]
+---
+
+In January 2024, Amazon tried to stop Perplexity AI from scraping its product pages, summarizing reviews, and presenting product comparisons — all without permission. Their tool of choice? `robots.txt`.
+
+But `robots.txt` wasn't built for this.
+
+## Where robots.txt Excels — and Where It Stops
+
+`robots.txt` was invented in 1994 and remains essential for SEO and search engine crawling. It does its job brilliantly — telling crawlers which paths to index and which to skip. The protocol is beautifully simple:
+
+```txt
+User-agent: *
+Disallow: /private/
+```
+
+For search engine crawlers, this works perfectly. But **AI agents aren't just crawlers.** They do far more than index pages for later retrieval. They:
+
+- **Summarize** content and present it as their own answers
+- **Extract** data for training datasets
+- **Transact** on behalf of users (booking, purchasing, form-filling)
+- **Act autonomously** through multi-step workflows
+- **Generate** derivative content from your original work
+
+`robots.txt` has no vocabulary for any of this — and it shouldn't. It was designed for crawl control, and it still does that well. But AI agents need a layer of authorization that goes beyond crawl rules.
+
+## What AI Agents Need That Crawl Rules Can't Express
+
+These aren't shortcomings of `robots.txt` — they're requirements from a different era:
+
+**No intent-based rules.** You can't distinguish between an agent that wants to read your content and one that wants to extract your data for training. Both access the same URL.
+
+**No identity verification.** Any bot can claim to be "GoogleBot" in its User-Agent string. There's no way to verify an agent's identity cryptographically.
+
+**No rate limiting.** There's no standard way to say "you can make 60 requests per minute." The `Crawl-delay` directive was never officially part of the spec and is inconsistently supported.
+
+**No action-level control.** You can't express "read is okay, but summarize is not" or "navigate is fine, but don't fill out forms on behalf of users."
+
+**No cross-protocol interoperability.** The agentic web runs on MCP, A2A, WebMCP, and more. `robots.txt` lives in a world that predates all of them.
+
+## Introducing Agent Policy Protocol
+
+The **Agent Policy Protocol (APoP)** is an open standard designed to complement `robots.txt` for the agentic web. While `robots.txt` handles crawl control, APoP handles agent authorization — using a structured JSON document placed at `/.well-known/agent-policy.json`.
+
+```json
+{
+  "apopVersion": "1.0",
+  "defaultPolicy": {
+    "allowedActions": ["read", "navigate"],
+    "disallowedActions": ["summarize", "extract", "train"],
+    "rateLimit": { "maxRequests": 60, "windowSeconds": 60 }
+  },
+  "pathPolicies": [
+    {
+      "path": "/api/*",
+      "allowedActions": ["read"],
+      "rateLimit": { "maxRequests": 100, "windowSeconds": 3600 }
+    }
+  ]
+}
+```
+
+This single document expresses what goes beyond crawl rules:
+
+- **Intent-based permissions** — allow reading but deny summarization
+- **Identity requirements** — require agents to identify themselves with cryptographic verification
+- **Rate limits** — per-path, per-agent request limits
+- **Action vocabulary** — read, summarize, extract, train, navigate, execute, and more
+
+## The Path Forward
+
+`robots.txt` remains essential — keep it for SEO and crawl control. But the agentic web needs an additional layer. Every week, new AI agents launch that interact with websites in ways that crawl rules were never designed to govern.
+
+Website owners deserve a standard that matches the sophistication of the agents accessing their content. APoP provides that complementary standard — machine-readable, verifiable, and designed for the era of autonomous AI agents.
+
+The question isn't whether `robots.txt` is enough. It's whether we add the authorization layer that AI agents need before the gap becomes a crisis.
+
+**[Read the APoP specification →](/docs)**
+
+**[Try the interactive playground →](/playground)**

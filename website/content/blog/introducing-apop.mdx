@@ -1,0 +1,181 @@
+---
+title: "Introducing Agent Policy Protocol: Consent & Governance for AI Agents"
+description: "APoP is an open standard that lets websites declare how AI agents can access and interact with their content. Here's how it works and why it matters."
+date: "2026-02-13"
+author:
+  name: "Arun Vijayarengan"
+  title: "Founder & CEO, Superdom AI"
+  url: "https://www.linkedin.com/in/arunvijayarengan"
+  avatar: "/authors/arun.jpg"
+tags: ["announcement", "standard", "launch"]
+---
+
+Today we're open-sourcing the **Agent Policy Protocol (APoP)** — a new standard that gives website owners fine-grained control over how AI agents interact with their content.
+
+APoP is to AI agents what a passport control system is to international travelers. Your website declares its policies. Agents discover those policies. And the ecosystem has a shared language for consent, identity, and governance.
+
+## The Problem
+
+The agentic web is exploding. AI agents powered by large language models are:
+
+- Browsing websites on behalf of users
+- Summarizing content for AI search engines
+- Extracting data for model training
+- Executing transactions autonomously
+- Interacting through protocols like MCP, A2A, and WebMCP
+
+But website owners have **no standardized way** to express what agents are allowed to do. `robots.txt` can block crawlers, but it can't say "you may read my content but not use it for training" or "verify your identity before accessing my API."
+
+## How APoP Works
+
+APoP uses a JSON document — `agent-policy.json` — served at a well-known URL. Here's a minimal example:
+
+```json
+{
+  "apopVersion": "1.0",
+  "defaultPolicy": {
+    "allowedActions": ["read", "navigate"],
+    "disallowedActions": ["train", "extract"]
+  }
+}
+```
+
+This says: agents may read and navigate the site, but they may not use the content for training or extract structured data.
+
+### Discovery
+
+Agents discover your policy through four methods:
+
+1. **Well-Known URI**: `GET /.well-known/agent-policy.json`
+2. **HTTP Header**: `Agent-Policy: /.well-known/agent-policy.json`
+3. **HTML Meta Tag**: `<meta name="agent-policy" content="...">`
+4. **DNS TXT Record**: `_agentpolicy.example.com TXT "policy_url=..."`
+
+### Agent Identity
+
+APoP defines three identity tiers:
+
+- **Self-declared**: Agent sends its name and version in HTTP headers
+- **Verified**: Agent proves identity via PKIX certificates or DID
+- **Trusted**: Agent is on an allowlist in your policy
+
+```json
+{
+  "verification": {
+    "required": true,
+    "methods": ["pkix", "did"],
+    "registryUrl": "https://agents.example.com/registry"
+  }
+}
+```
+
+### Action Vocabulary
+
+APoP defines a rich set of actions that go beyond "allow" and "disallow":
+
+| Action      | Description                       |
+| ----------- | --------------------------------- |
+| `read`      | View/read content                 |
+| `summarize` | Create summaries of content       |
+| `extract`   | Extract structured data           |
+| `train`     | Use content for model training    |
+| `navigate`  | Follow links, browse pages        |
+| `execute`   | Execute transactions/actions      |
+| `store`     | Cache or store content            |
+| `modify`    | Create, update, or delete content |
+
+### Path-Level Policies
+
+Different parts of your site can have different rules:
+
+```json
+{
+  "pathPolicies": [
+    {
+      "path": "/blog/*",
+      "allowedActions": ["read", "summarize"],
+      "rateLimit": { "maxRequests": 30, "windowSeconds": 60 }
+    },
+    {
+      "path": "/api/*",
+      "allowedActions": ["read", "execute"],
+      "verification": { "required": true }
+    },
+    {
+      "path": "/admin/*",
+      "disallowedActions": ["*"]
+    }
+  ]
+}
+```
+
+### Rate Limiting
+
+Built-in rate limiting per path, per agent:
+
+```json
+{
+  "rateLimit": {
+    "maxRequests": 100,
+    "windowSeconds": 3600
+  }
+}
+```
+
+## Cross-Protocol Interoperability
+
+The agentic web isn't one protocol — it's many. APoP is designed to complement, not compete with, existing standards:
+
+| Protocol   | Purpose                      | APoP's Role                                      |
+| ---------- | ---------------------------- | ------------------------------------------------ |
+| **MCP**    | Tool/context for LLMs        | Authorize which MCP tools agents can use         |
+| **A2A**    | Agent-to-agent communication | Set policies for inter-agent interactions        |
+| **WebMCP** | Web discovery for MCP        | Provide authorization layer for WebMCP endpoints |
+| **UCP**    | Universal context protocol   | Govern context sharing policies                  |
+
+APoP fills the **authorization gap** — it's the layer that says "who can do what, where, and how often."
+
+## SDKs: Get Started in Minutes
+
+### Node.js
+
+```bash
+npm install @anthropic/agentpolicy
+```
+
+```typescript
+import { createMiddleware } from "@anthropic/agentpolicy/express";
+import express from "express";
+
+const app = express();
+app.use(
+  createMiddleware({
+    policyPath: "./agent-policy.json",
+  }),
+);
+```
+
+### Python
+
+```bash
+pip install apop
+```
+
+```python
+from apop.middleware.fastapi import AgentPolicyMiddleware
+from fastapi import FastAPI
+
+app = FastAPI()
+app.add_middleware(AgentPolicyMiddleware, policy_path="./agent-policy.json")
+```
+
+## What's Next
+
+APoP v1.0 is available today as an open standard under the Apache 2.0 license. Here's how to get involved:
+
+- **[Read the full specification →](/docs/specification/overview)**
+- **[Try the playground →](/playground)** — build your policy in-browser
+- **[Install the SDK →](/docs/sdks/overview)** — Node.js and Python
+- **[Star us on GitHub →](https://github.com/agent-policy-protocol/spec)** — and contribute
+
+The agentic web deserves an authorization layer. APoP is that layer. Let's build it together.

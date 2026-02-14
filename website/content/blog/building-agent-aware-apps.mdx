@@ -1,0 +1,303 @@
+---
+title: "Building Agent-Aware Apps with APoP: A Developer's Guide"
+description: "A technical deep-dive into building applications that understand and enforce agent policies using the APoP SDKs for Node.js and Python."
+date: "2026-02-11"
+author:
+  name: "Arun Vijayarengan"
+  title: "Founder & CEO, Superdom AI"
+  url: "https://www.linkedin.com/in/arunvijayarengan"
+  avatar: "/authors/arun.jpg"
+tags: ["tutorial", "sdk", "development"]
+---
+
+If you're building a web application today, AI agents are part of your user base — whether you intended it or not. This guide walks through building applications that are aware of agent interactions and can enforce your policies programmatically.
+
+## What Does "Agent-Aware" Mean?
+
+An agent-aware application can:
+
+1. **Detect** when a request comes from an AI agent
+2. **Identify** the agent (name, version, intent)
+3. **Enforce** policies based on your `agent-policy.json`
+4. **Respond** with appropriate status codes and headers
+
+Let's build this step by step.
+
+## Setting Up the Node.js SDK
+
+Install the SDK:
+
+```bash
+npm install @anthropic/agentpolicy
+```
+
+### Parsing Policies
+
+The parser reads and validates your `agent-policy.json`:
+
+```typescript
+import { parsePolicy } from "@anthropic/agentpolicy";
+import { readFileSync } from "fs";
+
+const raw = readFileSync("./agent-policy.json", "utf-8");
+const policy = parsePolicy(raw);
+
+console.log(policy.apopVersion); // "1.0"
+console.log(policy.defaultPolicy); // { allowedActions: [...], ... }
+console.log(policy.pathPolicies); // [{ path: "/api/*", ... }]
+```
+
+The parser validates the JSON against the official APoP schema and throws descriptive errors for invalid policies.
+
+### Enforcing Policies
+
+The enforcer evaluates a request against your policy:
+
+```typescript
+import { createEnforcer } from "@anthropic/agentpolicy";
+
+const enforcer = createEnforcer(policy);
+
+// Check if an action is allowed
+const result = enforcer.evaluate({
+  path: "/api/users",
+  action: "extract",
+  agent: {
+    name: "DataBot",
+    version: "2.0",
+  },
+});
+
+if (!result.allowed) {
+  console.log(result.reason); // "Action 'extract' is disallowed"
+  console.log(result.statusCode); // 430
+}
+```
+
+### Path Matching
+
+APoP uses glob-style path patterns. The SDK handles matching:
+
+```typescript
+import { matchPath } from "@anthropic/agentpolicy";
+
+matchPath("/api/*", "/api/users"); // true
+matchPath("/api/*", "/api/users/123"); // true (nested)
+matchPath("/blog/*.html", "/blog/post"); // false
+matchPath("/docs/**", "/docs/a/b/c"); // true (recursive)
+```
+
+Path policies are evaluated in order — the first matching path policy applies.
+
+### Express Middleware
+
+The fastest way to add APoP enforcement:
+
+```typescript
+import express from "express";
+import { createMiddleware } from "@anthropic/agentpolicy/express";
+
+const app = express();
+
+app.use(
+  createMiddleware({
+    policyPath: "./agent-policy.json",
+    onViolation: (req, violation) => {
+      console.log(
+        `Agent ${violation.agentName} tried to ${violation.action} on ${violation.path}`,
+      );
+    },
+  }),
+);
+
+// Your routes work normally for non-agent traffic
+app.get("/api/data", (req, res) => {
+  res.json({ data: "hello" });
+});
+
+app.listen(3000);
+```
+
+The middleware:
+
+- Serves `/.well-known/agent-policy.json` automatically
+- Checks `Agent-Name`, `Agent-Intent`, and `Agent-Version` headers
+- Returns `430` with error details on policy violations
+- Adds `Agent-Policy` header to all responses
+- Enforces rate limits using in-memory counters
+
+## Setting Up the Python SDK
+
+Install:
+
+```bash
+pip install apop
+```
+
+### Parser and Enforcer
+
+```python
+from apop import parse_policy, create_enforcer
+
+# Parse the policy
+with open("agent-policy.json") as f:
+    policy = parse_policy(f.read())
+
+# Create an enforcer
+enforcer = create_enforcer(policy)
+
+# Evaluate a request
+result = enforcer.evaluate(
+    path="/api/data",
+    action="extract",
+    agent_name="ScraperBot",
+    agent_version="1.0",
+)
+
+if not result.allowed:
+    print(f"Denied: {result.reason}")  # "Action 'extract' is disallowed"
+```
+
+### FastAPI Middleware
+
+```python
+from fastapi import FastAPI
+from apop.middleware.fastapi import AgentPolicyMiddleware
+
+app = FastAPI()
+app.add_middleware(
+    AgentPolicyMiddleware,
+    policy_path="./agent-policy.json",
+)
+
+@app.get("/api/data")
+async def get_data():
+    return {"data": "hello"}
+```
+
+### Flask Middleware
+
+```python
+from flask import Flask
+from apop.middleware.flask import AgentPolicyMiddleware
+
+app = Flask(__name__)
+app.wsgi_app = AgentPolicyMiddleware(
+    app.wsgi_app,
+    policy_path="./agent-policy.json",
+)
+```
+
+## Advanced Patterns
+
+### Custom Action Handling
+
+Sometimes you want to allow an action but modify the response:
+
+```typescript
+app.use(
+  createMiddleware({
+    policyPath: "./agent-policy.json",
+    customHandlers: {
+      summarize: (req, res, next) => {
+        // Allow summarization but add a watermark
+        res.setHeader("X-Content-Notice", "AI-generated summary");
+        next();
+      },
+    },
+  }),
+);
+```
+
+### Agent Identity Tiers
+
+APoP supports three identity tiers. You can enforce different rules per tier:
+
+```json
+{
+  "pathPolicies": [
+    {
+      "path": "/premium/*",
+      "allowedActions": ["read"],
+      "verification": {
+        "required": true,
+        "methods": ["pkix"]
+      }
+    }
+  ]
+}
+```
+
+Only agents that can prove their identity via PKIX certificates can access `/premium/*` paths.
+
+### Rate Limiting Strategies
+
+The built-in rate limiter is per-agent, per-path:
+
+```json
+{
+  "defaultPolicy": {
+    "rateLimit": {
+      "maxRequests": 100,
+      "windowSeconds": 3600
+    }
+  },
+  "pathPolicies": [
+    {
+      "path": "/api/*",
+      "rateLimit": {
+        "maxRequests": 10,
+        "windowSeconds": 60
+      }
+    }
+  ]
+}
+```
+
+This gives agents 100 requests/hour globally, but only 10 requests/minute for API endpoints.
+
+### Discovery Configuration
+
+Help agents find your policy by setting multiple discovery methods:
+
+```typescript
+// 1. Serve at well-known URI (automatic with middleware)
+// 2. Add HTTP header
+app.use((req, res, next) => {
+  res.setHeader("Agent-Policy", "/.well-known/agent-policy.json");
+  next();
+});
+
+// 3. Add HTML meta tag (in your template)
+// <meta name="agent-policy" content="/.well-known/agent-policy.json">
+```
+
+## Testing Your Implementation
+
+Use `curl` to simulate agent requests:
+
+```bash
+# Allowed action
+curl -i \
+  -H "Agent-Name: GoodBot/1.0" \
+  -H "Agent-Intent: read" \
+  http://localhost:3000/blog/post-1
+
+# Disallowed action
+curl -i \
+  -H "Agent-Name: BadBot/1.0" \
+  -H "Agent-Intent: train" \
+  http://localhost:3000/blog/post-1
+```
+
+The second request should return `430 Agent Action Not Allowed`.
+
+## Next Steps
+
+- **[Specification overview](/docs/specification/overview)** — full spec details
+- **[Node.js SDK reference](/docs/sdks/node/installation)** — complete API docs
+- **[Python SDK reference](/docs/sdks/python/installation)** — complete API docs
+- **[Policy templates](/docs/guides/policy-templates)** — pre-built policies for common scenarios
+- **[Run conformance tests](/docs/contributing/conformance-tests)** — validate your implementation
+
+Building agent-aware applications isn't optional anymore — it's Table stakes for the agentic web. APoP gives you the tools to do it right.
