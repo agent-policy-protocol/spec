@@ -1,0 +1,59 @@
+---
+title: What is APoP?
+description: Learn about the Agent Policy Protocol — the authorization layer for the agentic web.
+---
+
+# What is APoP?
+
+**Agent Policy Protocol (APoP)** is an open standard that lets websites declare how AI agents can access and interact with their content — with JSON Schema, verified identity, rate limits, and cross-protocol interop.
+
+## The Core Idea
+
+`agent-policy.json` defines how AI agents are allowed to interact with your website — what they can access, what actions are permitted, how often, and whether they must verify identity.
+
+Think of it as **robots.txt for the agentic web**, built under the Agent Policy Protocol (APoP) standard. Place it at:
+
+```
+https://example.com/.well-known/agent-policy.json
+```
+
+## What APoP Provides
+
+- **Fine-grained access control** — Allow or deny by path, action, and agent identity
+- **Agent identity & verification** — PKIX, DID, Verifiable Credentials, partner tokens
+- **Rate limiting** — Per-agent, per-window request limits with standard HTTP headers
+- **Cross-protocol interop** — Links to MCP, A2A, WebMCP, UCP, APAAI
+- **4 discovery methods** — Well-known URI, HTTP header, HTML meta, DNS TXT
+- **10 action types** — `read`, `index`, `extract`, `summarize`, `render`, `api_call`, `form_submit`, `automated_purchase`, `tool_invoke`, `all`
+- **3 custom HTTP status codes** — `430 Agent Action Not Allowed`, `438 Agent Rate Limited`, `439 Agent Verification Required`
+
+## Quick Summary
+
+| Feature            | Details                         |
+| ------------------ | ------------------------------- |
+| **Discovery**      | 4 methods with defined priority |
+| **Actions**        | 10 standard action types        |
+| **Status Codes**   | 430, 438, 439                   |
+| **Identity Tiers** | Anonymous, Identified, Verified |
+| **Verification**   | PKIX, DID, VC, Partner Token    |
+| **Interop**        | A2A, MCP, WebMCP, UCP, APAAI    |
+
+## Minimal Example
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "summarize"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  }
+}
+```
+
+## Who Is APoP For?
+
+- **Website owners** who want to control how AI agents interact with their content
+- **AI agent developers** who want to build compliant, respectful agents
+- **Platform teams** deploying middleware to enforce agent policies at scale
+- **Standards bodies** looking for the authorization layer to complement MCP, A2A, and WebMCP

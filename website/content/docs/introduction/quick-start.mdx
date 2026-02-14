@@ -1,0 +1,99 @@
+---
+title: Quick Start
+description: Get up and running with APoP in 5 minutes.
+---
+
+# Quick Start
+
+Get your website protected with APoP in under 5 minutes.
+
+## Step 1: Create Your Policy
+
+Create an `agent-policy.json` file:
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "disallow": ["extract", "automated_purchase"],
+    "rateLimit": { "requests": 100, "window": "hour" },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    { "path": "/admin/*", "allow": false },
+    {
+      "path": "/api/*",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true
+    }
+  ]
+}
+```
+
+## Step 2: Deploy It
+
+Place the file at `/.well-known/agent-policy.json` on your website.
+
+For static sites, copy it to your public directory:
+
+```bash
+mkdir -p public/.well-known
+cp agent-policy.json public/.well-known/agent-policy.json
+```
+
+## Step 3: Test It
+
+Verify your policy is accessible:
+
+```bash
+curl -H "Agent-Name: MyBot/1.0" \
+     -H "Agent-Intent: read" \
+     https://yoursite.com/.well-known/agent-policy.json
+```
+
+## Step 4: Add Middleware (Optional)
+
+### Node.js (Express)
+
+```bash
+npm install @apop/node
+```
+
+```javascript
+import express from "express";
+import { createAgentPolicyMiddleware } from "@apop/node/middleware/express";
+
+const app = express();
+app.use(
+  createAgentPolicyMiddleware({
+    policyPath: "./.well-known/agent-policy.json",
+  }),
+);
+```
+
+### Python (FastAPI)
+
+```bash
+pip install apop
+```
+
+```python
+from fastapi import FastAPI
+from apop.middleware.fastapi import AgentPolicyMiddleware
+
+app = FastAPI()
+app.add_middleware(
+    AgentPolicyMiddleware,
+    policy_path=".well-known/agent-policy.json",
+)
+```
+
+## Next Steps
+
+- Browse [9 ready-made templates](/docs/examples/news-publisher) for your industry
+- Read the [full specification](/docs/specification/overview)
+- Explore [SDK documentation](/docs/sdks/overview)

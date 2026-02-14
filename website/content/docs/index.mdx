@@ -1,0 +1,41 @@
+---
+title: Documentation
+description: Learn about the Agent Policy Protocol (APoP) — the authorization layer for the agentic web.
+---
+
+# Agent Policy Protocol Documentation
+
+Welcome to the APoP documentation. Get started quickly or dive deep into the specification.
+
+## Quick Links
+
+- **[What is APoP?](/docs/introduction/what-is-apop)** — Learn what APoP is and what problems it solves
+- **[Quick Start](/docs/introduction/quick-start)** — Get up and running in 5 minutes
+- **[Specification](/docs/specification/overview)** — Full protocol specification
+- **[Examples](/docs/examples/news-publisher)** — Real-world policy examples
+
+## Why APoP?
+
+AI agents are browsing, summarizing, and transacting on the web — but websites have no standardized way to express consent or control. APoP is the open standard that fills this gap.
+
+With a single `agent-policy.json` file, you can:
+
+- **Control access** — Allow or deny AI agents per path, action, and identity
+- **Set rate limits** — Define request quotas per agent with standard HTTP headers
+- **Verify identity** — Require cryptographic proof of agent identity (PKIX, DID, VC)
+- **Interoperate** — Link to MCP, A2A, WebMCP, and other agentic protocols
+
+## Get Started
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "summarize"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  }
+}
+```
+
+Place this at `/.well-known/agent-policy.json` on your website. That's it!

@@ -1,0 +1,54 @@
+---
+title: Ecosystem & Interoperability
+description: How APoP fits into the agentic web ecosystem alongside MCP, A2A, WebMCP, and other protocols.
+---
+
+# Ecosystem & Interoperability
+
+APoP is designed to work alongside — not replace — other agentic web protocols. It fills the **authorization gap** that no other protocol addresses.
+
+## The Agentic Web Stack
+
+```
+┌─────────────────────────────────────┐
+│         Application Layer           │
+│    (Your App / Agent / Platform)    │
+├─────────────────────────────────────┤
+│     Communication Protocols         │
+│   MCP · A2A · WebMCP · UCP · AP2   │
+├─────────────────────────────────────┤
+│     ★ Authorization Layer ★         │
+│    Agent Policy Protocol (APoP)     │
+├─────────────────────────────────────┤
+│         Transport Layer             │
+│        HTTP/HTTPS · DNS             │
+└─────────────────────────────────────┘
+```
+
+## Protocol Comparison
+
+| Protocol                      | Purpose                 | Scope                                 |
+| ----------------------------- | ----------------------- | ------------------------------------- |
+| **APoP**                      | Authorization & consent | Website-level policies for all agents |
+| **MCP** (Anthropic)           | Tool & data integration | Server-side tool schemas              |
+| **A2A** (Google)              | Agent-to-agent comms    | Multi-agent orchestration             |
+| **WebMCP** (Google/Microsoft) | Browser tool contracts  | In-browser agent capabilities         |
+| **UCP**                       | Universal commerce      | Transaction protocols                 |
+| **AP2**                       | Agent payments          | Payment flows                         |
+| **APAAI**                     | Action auditing         | Post-hoc compliance                   |
+
+## Cross-Protocol Interop
+
+APoP's `interop` field lets you link your policy to other protocol endpoints:
+
+```json
+{
+  "interop": {
+    "webmcpEnabled": true,
+    "mcpServerUrl": "https://example.com/mcp",
+    "a2aAgentCard": "https://example.com/.well-known/agent.json"
+  }
+}
+```
+
+This gives agents a single discovery point to find all your protocol endpoints.

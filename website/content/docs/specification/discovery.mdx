@@ -1,0 +1,150 @@
+---
+title: Discovery Methods
+description: How AI agents discover APoP policies — 4 discovery methods with defined priority.
+---
+
+# APoP Discovery Specification
+
+**Version**: 1.0-draft | **Status**: Draft
+
+## Overview
+
+This document specifies how AI agents discover the Agent Policy Protocol (APoP) manifest for a given website. Discovery is the first step in the APoP protocol flow: an agent must locate and fetch the policy before it can determine what actions are permitted.
+
+APoP defines **four discovery methods**, ordered by priority. Agents MUST attempt them in the specified order and use the first successful result.
+
+## Design Principles
+
+- **Zero configuration**: The primary method (well-known URI) works with no server-side changes beyond hosting a static JSON file.
+- **Progressive enhancement**: Sites can add HTTP headers, HTML meta tags, or DNS records for richer integration.
+- **Graceful degradation**: If no policy is discovered, the agent SHOULD treat the site as having no APoP policy (open access, subject to `robots.txt` and legal compliance).
+- **Cacheability**: Discovered policies SHOULD be cacheable to minimize overhead.
+
+## Discovery Methods
+
+### 1. Well-Known URI (Primary)
+
+The canonical discovery method. Agents MUST check this first.
+
+**URI**: `/.well-known/agent-policy.json`
+
+**Requirements**:
+
+- The server MUST serve the file with `Content-Type: application/json`.
+- The file MUST conform to the APoP JSON Schema.
+- The server SHOULD set `Cache-Control` headers (recommended: `public, max-age=3600`).
+- The file MUST be accessible without authentication.
+
+**Agent behavior**:
+
+1. Issue a `GET` request to `https://{host}/.well-known/agent-policy.json`.
+2. If the response is `200 OK` with valid JSON, parse and apply the policy.
+3. If the response is `404 Not Found`, proceed to the next discovery method.
+4. If the response is any other error (5xx, timeout), retry with exponential backoff (max 3 attempts).
+
+```
+GET /.well-known/agent-policy.json HTTP/1.1
+Host: example.com
+Agent-Name: MyCrawler/1.0
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Cache-Control: public, max-age=3600
+
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "render"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  }
+}
+```
+
+### 2. HTTP Response Header
+
+Allows servers to advertise the policy URL in any HTTP response.
+
+**Header**: `Agent-Policy`
+
+```
+Agent-Policy: https://example.com/.well-known/agent-policy.json
+```
+
+**Requirements**:
+
+- The header value MUST be an absolute URI.
+- Servers SHOULD include this header in all responses.
+- If both the well-known URI and the header are present, the well-known URI takes precedence.
+
+### 3. HTML Meta Tag
+
+For static sites or environments where HTTP header modification is difficult.
+
+**Tag**: `<meta name="agent-policy" content="{url}">`
+
+```html
+<head>
+  <meta
+    name="agent-policy"
+    content="https://example.com/.well-known/agent-policy.json"
+  />
+</head>
+```
+
+### 4. DNS TXT Record
+
+For organizations that want to declare a policy at the domain level.
+
+**Record**: `_agentpolicy.{domain}`
+
+```
+_agentpolicy.example.com. 3600 IN TXT "apop=1 v=1.0 policy=https://example.com/.well-known/agent-policy.json"
+```
+
+## Discovery Fallback Chain
+
+```
+1. GET /.well-known/agent-policy.json
+   ├── 200 OK → Use this policy (DONE)
+   └── 404 / Error → Continue
+
+2. Check HTTP Response Header: Agent-Policy
+   ├── Present → Fetch URL (DONE)
+   └── Absent → Continue
+
+3. Parse HTML <meta name="agent-policy"> tag
+   ├── Found → Fetch URL (DONE)
+   └── Not found → Continue
+
+4. DNS TXT lookup: _agentpolicy.{domain}
+   ├── Found → Fetch URL (DONE)
+   └── Not found → No APoP policy
+```
+
+## Policy Caching
+
+- Agents SHOULD cache discovered policies for the duration specified by `Cache-Control` headers.
+- Default TTL: **1 hour** when no cache headers are present.
+- Agents SHOULD support `ETag` / `If-None-Match` for conditional requests.
+
+**Recommended cache headers for site owners:**
+
+```
+Cache-Control: public, max-age=3600
+```
+
+## Relationship to robots.txt
+
+APoP complements, not replaces, `robots.txt`:
+
+| Feature              | robots.txt             | APoP                          |
+| -------------------- | ---------------------- | ----------------------------- |
+| Scope                | Crawl access           | Full agent behavior           |
+| Actions              | Allow/Disallow crawl   | 10+ action types              |
+| Agent identification | User-Agent string      | Verified identity (DID, PKIX) |
+| Rate limiting        | Crawl-delay (informal) | Formal rate limits            |
+| Machine-readable     | Custom format          | JSON Schema                   |
+| Verification         | None                   | Cryptographic                 |
+
+If both are present, the **more restrictive rule** applies.

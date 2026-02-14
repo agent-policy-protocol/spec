@@ -1,0 +1,158 @@
+---
+title: Agent Identification & Verification
+description: How AI agents identify themselves and how websites verify agent identity claims.
+---
+
+# Agent Identification & Verification
+
+**Version**: 1.0-draft | **Status**: Draft
+
+## Overview
+
+This document specifies how AI agents identify themselves to websites implementing APoP, and how websites verify agent identity claims. Agent identification enables sites to differentiate between agents, apply per-agent policies, and cryptographically verify identity.
+
+## Design Principles
+
+- **Layered identity**: Simple name-based identification for basic use cases, full cryptographic verification for high-trust interactions.
+- **Interoperable**: Aligns with W3C DIDs, Verifiable Credentials, and A2A Agent Cards.
+- **Privacy-preserving**: Agents disclose only what is necessary.
+- **Backwards compatible**: Agents sending only `User-Agent` can still be matched by name.
+
+## Agent Request Headers
+
+### Required Headers
+
+#### `Agent-Name`
+
+Human-readable name and version of the agent.
+
+- **Format**: `{AgentName}/{Version}`
+- **Required**: YES (for APoP-aware agents)
+
+```
+Agent-Name: PerplexityBot/1.0
+```
+
+### Recommended Headers
+
+#### `Agent-Intent`
+
+Declares the purpose of the agent's current request.
+
+- **Format**: Comma-separated action types
+- **Valid values**: `read`, `index`, `extract`, `summarize`, `render`, `api_call`, `form_submit`, `automated_purchase`, `tool_invoke`
+
+```
+Agent-Intent: read, summarize
+```
+
+When multiple intents are declared, the site evaluates against **all** declared intents. If any intent is disallowed, the entire request is denied (fail-closed semantics).
+
+#### `Agent-Id`
+
+A globally unique, verifiable identifier.
+
+- **Supported schemes**: `did:web:`, `did:key:`, `mailto:`, `https:`
+- **Required**: RECOMMENDED (REQUIRED when `requireVerification: true`)
+
+```
+Agent-Id: did:web:comet.perplexity.ai
+```
+
+### Optional Headers
+
+| Header            | Format       | Purpose                                        |
+| ----------------- | ------------ | ---------------------------------------------- |
+| `Agent-Card`      | Absolute URI | Link to agent capability card (A2A compatible) |
+| `Agent-Signature` | Base64url    | Cryptographic identity proof                   |
+| `Agent-Key-Id`    | URI          | Signing key reference                          |
+| `Agent-VC`        | Base64url    | Verifiable Credential token                    |
+
+## Header Summary
+
+| Header            | Required      | Format         | Purpose                       |
+| ----------------- | ------------- | -------------- | ----------------------------- |
+| `Agent-Name`      | YES           | `Name/Version` | Human-readable identification |
+| `Agent-Intent`    | RECOMMENDED   | Action type(s) | Declare purpose of request    |
+| `Agent-Id`        | RECOMMENDED\* | URI            | Globally unique identifier    |
+| `Agent-Card`      | OPTIONAL      | Absolute URI   | Agent capability card         |
+| `Agent-Signature` | CONDITIONAL   | Base64url      | Cryptographic identity proof  |
+| `Agent-Key-Id`    | CONDITIONAL   | URI            | Signing key reference         |
+| `Agent-VC`        | OPTIONAL      | Base64url      | Verifiable Credential token   |
+
+_REQUIRED when `requireVerification: true`_
+
+## Verification Methods
+
+APoP supports four verification methods:
+
+### 1. PKIX Verification (`pkix`)
+
+Traditional X.509 certificate-based verification.
+
+1. Agent sends `Agent-Id`, `Agent-Signature`, and `Agent-Key-Id`
+2. Server resolves public key via X.509 certificate chain
+3. Server verifies the signature
+
+### 2. DID Verification (`did`)
+
+W3C Decentralized Identifier-based verification.
+
+1. Agent sends `Agent-Id: did:web:{domain}` and `Agent-Signature`
+2. Server resolves DID Document from `https://{domain}/.well-known/did.json`
+3. Server verifies the signature using the DID's verification method
+
+```json
+{
+  "@context": "https://www.w3.org/ns/did/v1",
+  "id": "did:web:comet.perplexity.ai",
+  "verificationMethod": [
+    {
+      "id": "did:web:comet.perplexity.ai#key-1",
+      "type": "Ed25519VerificationKey2020",
+      "controller": "did:web:comet.perplexity.ai",
+      "publicKeyMultibase": "z6MkhaXgBZDvotDkL..."
+    }
+  ]
+}
+```
+
+### 3. Verifiable Credential (`verifiable-credential`)
+
+W3C Verifiable Credentials-based verification.
+
+1. Agent sends `Agent-VC` header with a signed Verifiable Credential
+2. Server validates the VC structure and signature
+3. Server checks the issuer is in `trustedIssuers`
+
+### 4. Partner Token (`partner-token`)
+
+Shared secret or API key-based verification for trusted partnerships.
+
+1. Agent sends `Agent-Signature` with a partner-issued token
+2. Server validates the token against its partner registry
+
+## Identity Tiers
+
+| Tier           | Headers Required                           | Trust Level                       |
+| -------------- | ------------------------------------------ | --------------------------------- |
+| **Anonymous**  | None or `User-Agent` only                  | Low — basic access only           |
+| **Identified** | `Agent-Name` + `Agent-Intent`              | Medium — policy-aware access      |
+| **Verified**   | All above + `Agent-Id` + `Agent-Signature` | High — cryptographically verified |
+
+## Policy Configuration
+
+Sites declare verification requirements in their policy:
+
+```json
+{
+  "verification": {
+    "method": ["did", "pkix"],
+    "registry": "https://example.com/.well-known/agent-registry.json",
+    "trustedIssuers": [
+      "did:web:trust.agentpolicy.org",
+      "did:web:verify.anthropic.com"
+    ]
+  }
+}
+```

@@ -1,0 +1,48 @@
+{
+  "framework": "nextjs",
+  "headers": [
+    {
+      "source": "/.well-known/agent-policy.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Agent-Policy-Version", "value": "1.0" }
+      ]
+    },
+    {
+      "source": "/schema/(.*)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/schema+json" },
+        { "key": "Cache-Control", "value": "public, max-age=86400" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Agent-Policy",
+          "value": "https://agentpolicy.org/.well-known/agent-policy.json"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/github",
+      "destination": "https://github.com/agent-policy-protocol/spec",
+      "permanent": false
+    },
+    {
+      "source": "/discord",
+      "destination": "https://discord.gg/apop",
+      "permanent": false
+    },
+    {
+      "source": "/spec",
+      "destination": "/docs/specification/overview",
+      "permanent": false
+    }
+  ]
+}

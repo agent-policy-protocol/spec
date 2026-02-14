@@ -1,0 +1,19 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "---Introduction---",
+    "introduction/what-is-apop",
+    "introduction/why-apop",
+    "introduction/quick-start",
+    "introduction/ecosystem",
+    "---Specification---",
+    "specification/overview",
+    "specification/discovery",
+    "specification/agent-identification",
+    "specification/http-extensions",
+    "---SDKs---",
+    "sdks/overview",
+    "---Contributing---",
+    "contributing/how-to-contribute"
+  ]
+}

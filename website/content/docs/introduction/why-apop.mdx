@@ -1,0 +1,48 @@
+---
+title: Why APoP?
+description: Understanding the problem APoP solves — why the agentic web needs an authorization standard.
+---
+
+# Why APoP?
+
+## The Problem
+
+AI agents are browsing, summarizing, and transacting on the web at an unprecedented scale. But websites have **no standardized way** to express consent or control over what these agents do.
+
+### What's Broken Today
+
+- **robots.txt is insufficient** — It was designed for search crawlers, not intelligent agents that summarize, extract data, submit forms, or make purchases.
+- **No standard for intent declaration** — Agents don't tell websites what they intend to do.
+- **No identity verification** — Websites can't verify that an agent is who it claims to be.
+- **No rate limiting standard** — Each website rolls its own rate limiting, with no interoperability.
+- **No cross-protocol coordination** — MCP, A2A, WebMCP each solve different problems, but none address website-level authorization.
+
+### The Gap in the Agentic Stack
+
+| Protocol       | What It Does                      | What It Doesn't Do                              |
+| -------------- | --------------------------------- | ----------------------------------------------- |
+| **WebMCP**     | Browser-native tool contracts     | No consent management                           |
+| **MCP**        | Server-side tool/data integration | No website-level policies                       |
+| **A2A**        | Agent-to-agent communication      | No resource owner authorization                 |
+| **robots.txt** | Basic crawl directives            | No action control, no identity, no verification |
+
+APoP fills the **authorization gap** — the missing layer between "how agents communicate" and "what websites allow."
+
+## The Solution
+
+APoP provides a simple, JSON-based policy file that websites serve at a well-known location. Agents discover and respect these policies automatically.
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "disallow": ["extract", "automated_purchase"],
+    "rateLimit": { "requests": 100, "window": "hour" },
+    "requireVerification": false
+  }
+}
+```
+
+This single file gives website owners complete control over AI agent interactions, while giving agent developers a clear, machine-readable signal of what's allowed.

@@ -1,0 +1,97 @@
+---
+title: SDKs Overview
+description: Official SDKs for implementing APoP in Node.js and Python.
+---
+
+# SDKs Overview
+
+APoP provides official SDKs for the most popular server-side languages. Each SDK includes a parser, enforcer, discovery client, and framework-specific middleware.
+
+## Available SDKs
+
+### Node.js (`@apop/node`)
+
+Full-featured TypeScript SDK for Node.js with middleware for Express, Next.js, and Vercel Edge.
+
+```bash
+npm install @apop/node
+```
+
+**Features:**
+
+- Policy parser with JSON Schema validation
+- Request enforcer with rate limiting
+- Multi-method discovery client
+- Express middleware
+- Next.js middleware
+- Vercel Edge middleware
+- Full TypeScript types
+
+### Python (`apop`)
+
+Python SDK with middleware for FastAPI, Flask, and Django.
+
+```bash
+pip install apop
+```
+
+**Features:**
+
+- Policy parser with schema validation
+- Request enforcer with rate limiting
+- Multi-method discovery client
+- FastAPI middleware
+- Flask middleware
+- Django middleware
+- Full type hints
+
+## SDK Architecture
+
+Both SDKs follow the same modular architecture:
+
+| Module         | Purpose                                                        |
+| -------------- | -------------------------------------------------------------- |
+| **Parser**     | Parse and validate `agent-policy.json` against the JSON Schema |
+| **Enforcer**   | Evaluate requests against the parsed policy                    |
+| **Discovery**  | Discover policies using all 4 discovery methods                |
+| **Headers**    | Parse and generate APoP HTTP headers                           |
+| **Middleware** | Framework-specific request handling                            |
+
+## Quick Integration Example
+
+### Express (Node.js)
+
+```javascript
+import express from "express";
+import { createAgentPolicyMiddleware } from "@apop/node/middleware/express";
+
+const app = express();
+app.use(
+  createAgentPolicyMiddleware({
+    policyPath: "./.well-known/agent-policy.json",
+  }),
+);
+
+app.get("/api/data", (req, res) => {
+  res.json({ message: "This endpoint is protected by APoP" });
+});
+
+app.listen(3000);
+```
+
+### FastAPI (Python)
+
+```python
+from fastapi import FastAPI
+from apop.middleware.fastapi import AgentPolicyMiddleware
+
+app = FastAPI()
+app.add_middleware(
+    AgentPolicyMiddleware,
+    policy_path=".well-known/agent-policy.json",
+)
+
+@app.get("/api/data")
+async def get_data():
+    return {"message": "This endpoint is protected by APoP"}
+```

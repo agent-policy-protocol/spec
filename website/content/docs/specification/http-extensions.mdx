@@ -1,0 +1,181 @@
+---
+title: HTTP Extensions
+description: Custom HTTP status codes, response headers, and interaction model for APoP.
+---
+
+# HTTP Extensions
+
+**Version**: 1.0-draft | **Status**: Draft
+
+## Overview
+
+This document specifies the HTTP extensions introduced by APoP: custom status codes for agent-specific error conditions, response headers for communicating policy information, and the interaction model between agents and APoP-aware servers.
+
+## Custom HTTP Status Codes
+
+APoP defines three custom HTTP status codes in the **4xx Client Error** range.
+
+### Status Code Registry
+
+| Code    | Reason Phrase               | Description                                                  |
+| ------- | --------------------------- | ------------------------------------------------------------ |
+| **430** | Agent Action Not Allowed    | The requested action is disallowed by the site's APoP policy |
+| **438** | Agent Rate Limited          | The agent has exceeded the rate limit defined in the policy  |
+| **439** | Agent Verification Required | The agent must verify its identity before access is granted  |
+
+> **Note**: Code 431 is NOT used by APoP — it is already assigned to "Request Header Fields Too Large" by RFC 6585.
+
+### 430 Agent Action Not Allowed
+
+Returned when the agent's request or declared intent is explicitly disallowed.
+
+**When to use**:
+
+- The agent's `Agent-Intent` includes a disallowed action
+- The agent is requesting a path where `allow: false`
+- The agent is not on the `agentAllowlist`
+- The agent is on the `agentDenylist`
+
+**Response body**:
+
+```json
+{
+  "error": "agent_action_not_allowed",
+  "message": "The action 'extract' is not permitted on this path.",
+  "policy": "https://example.com/.well-known/agent-policy.json",
+  "allowedActions": ["read", "render"],
+  "path": "/api/data"
+}
+```
+
+### 438 Agent Rate Limited
+
+Returned when the agent has exceeded its rate limit.
+
+**Response body**:
+
+```json
+{
+  "error": "agent_rate_limited",
+  "message": "Rate limit exceeded. 100 requests per hour allowed.",
+  "retryAfter": 3600,
+  "limit": 100,
+  "window": "hour",
+  "remaining": 0
+}
+```
+
+**Response headers**:
+
+```
+Retry-After: 3600
+X-Agent-RateLimit-Limit: 100
+X-Agent-RateLimit-Remaining: 0
+X-Agent-RateLimit-Reset: 1739506800
+```
+
+### 439 Agent Verification Required
+
+Returned when the agent must verify its identity.
+
+**Response body**:
+
+```json
+{
+  "error": "agent_verification_required",
+  "message": "This resource requires agent identity verification.",
+  "acceptedMethods": ["did", "pkix"],
+  "registryUrl": "https://example.com/.well-known/agent-registry.json"
+}
+```
+
+## Response Headers
+
+### APoP-Specific Headers
+
+| Header                        | Description                      | Example                                             |
+| ----------------------------- | -------------------------------- | --------------------------------------------------- |
+| `Agent-Policy`                | URL to the APoP manifest         | `https://example.com/.well-known/agent-policy.json` |
+| `Agent-Policy-Version`        | APoP version supported           | `1.0`                                               |
+| `X-Agent-RateLimit-Limit`     | Max requests per window          | `100`                                               |
+| `X-Agent-RateLimit-Remaining` | Remaining requests               | `42`                                                |
+| `X-Agent-RateLimit-Reset`     | Unix timestamp when limit resets | `1739506800`                                        |
+| `X-Agent-RateLimit-Window`    | Rate limit window                | `hour`                                              |
+
+### Example Response
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+Agent-Policy: https://example.com/.well-known/agent-policy.json
+Agent-Policy-Version: 1.0
+X-Agent-RateLimit-Limit: 100
+X-Agent-RateLimit-Remaining: 99
+X-Agent-RateLimit-Reset: 1739506800
+X-Agent-RateLimit-Window: hour
+```
+
+## Error Response Format
+
+All APoP error responses follow a consistent JSON structure:
+
+```json
+{
+  "error": "string",
+  "message": "string",
+  "policy": "string (URL)",
+  "details": {}
+}
+```
+
+| Field     | Type   | Required    | Description                 |
+| --------- | ------ | ----------- | --------------------------- |
+| `error`   | string | YES         | Machine-readable error code |
+| `message` | string | YES         | Human-readable description  |
+| `policy`  | string | RECOMMENDED | URL to the policy file      |
+| `details` | object | OPTIONAL    | Additional context          |
+
+## Request Flow
+
+```
+Agent sends request with APoP headers
+           │
+           ▼
+Server checks Agent-Name against denylist
+           │
+    ┌──────┴──────┐
+    │ On denylist │──→ 430 Agent Action Not Allowed
+    └──────┬──────┘
+           │ Not on denylist
+           ▼
+Server checks path policy
+           │
+    ┌──────┴──────┐
+    │ allow:false │──→ 430 Agent Action Not Allowed
+    └──────┬──────┘
+           │ allow:true
+           ▼
+Server checks Agent-Intent against allowed actions
+           │
+    ┌──────┴──────┐
+    │ Disallowed  │──→ 430 Agent Action Not Allowed
+    └──────┬──────┘
+           │ Allowed
+           ▼
+Server checks rate limit
+           │
+    ┌──────┴──────┐
+    │  Exceeded   │──→ 438 Agent Rate Limited
+    └──────┬──────┘
+           │ Within limit
+           ▼
+Server checks verification requirement
+           │
+    ┌──────┴──────────┐
+    │ Required but    │──→ 439 Agent Verification Required
+    │ not provided    │
+    └──────┬──────────┘
+           │ Verified or not required
+           ▼
+    200 OK (serve content)
+```

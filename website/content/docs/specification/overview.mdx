@@ -1,0 +1,70 @@
+---
+title: Specification Overview
+description: APoP v1.0 specification overview — the authorization & consent layer for the agentic web.
+---
+
+# Specification Overview
+
+> **Agent Policy Protocol (APoP)** — The authorization & consent layer for the agentic web.
+
+This section contains the formal specification documents for APoP v1.0.
+
+## Specification Documents
+
+| Document                                                         | Description                                                                                 | Status |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------ |
+| [Discovery](/docs/specification/discovery)                       | How agents discover APoP policies (well-known URI, HTTP headers, HTML meta, DNS TXT)        | Draft  |
+| [Agent Identification](/docs/specification/agent-identification) | Agent identity headers, verification methods (PKIX, DID, VC, partner-token), identity tiers | Draft  |
+| [HTTP Extensions](/docs/specification/http-extensions)           | Custom HTTP status codes (430/438/439), response headers, request flows                     | Draft  |
+
+## Quick Reference
+
+### Discovery
+
+```
+GET /.well-known/agent-policy.json
+```
+
+### Agent Headers
+
+```
+Agent-Name: MyBot/1.0
+Agent-Intent: read, summarize
+Agent-Id: did:web:mybot.example.com
+```
+
+### Status Codes
+
+| Code | Meaning                     |
+| ---- | --------------------------- |
+| 430  | Agent Action Not Allowed    |
+| 438  | Agent Rate Limited          |
+| 439  | Agent Verification Required |
+
+### Minimal Policy
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "render"]
+  }
+}
+```
+
+## Schema
+
+The APoP manifest is validated against a JSON Schema (Draft 2020-12). You can find the schema at:
+
+```
+https://agentpolicy.org/schema/v1/agent-policy.schema.json
+```
+
+## Key Concepts
+
+- **10 action types**: `read`, `index`, `extract`, `summarize`, `render`, `api_call`, `form_submit`, `automated_purchase`, `tool_invoke`, `all`
+- **3 identity tiers**: Anonymous, Identified, Verified
+- **4 verification methods**: `pkix`, `did`, `verifiable-credential`, `partner-token`
+- **4 discovery methods**: Well-known URI, HTTP header, HTML meta tag, DNS TXT record
+- **Cross-protocol interop**: Links to A2A Agent Cards, MCP servers, WebMCP, UCP, APAAI
