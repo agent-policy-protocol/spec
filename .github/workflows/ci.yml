@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  conformance-tests:
+    name: Conformance Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: tests/conformance/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tests/conformance
+        run: npm ci
+
+      - name: Run conformance tests
+        working-directory: tests/conformance
+        run: npm test
+
+      - name: Validate example policies
+        working-directory: tests/conformance
+        run: npm run validate:examples
+
+  middleware-smoke-test:
+    name: Middleware Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install middleware dependencies
+        working-directory: middleware
+        run: npm install
+
+      - name: Start middleware and test
+        working-directory: middleware
+        run: |
+          node index.express.js &
+          sleep 2
+          # Test well-known endpoint
+          curl -sf http://localhost:3000/.well-known/agent-policy.json | jq .version
+          # Test agent request
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Agent-Name: CI-Bot" -H "Agent-Intent: read" http://localhost:3000/public/test)
+          echo "Response status: $STATUS"
+          # Kill the server
+          kill %1

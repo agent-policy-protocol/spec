@@ -15,9 +15,9 @@ An open standard that lets websites declare how AI agents can access and interac
 
 Think of it as **robots.txt for the agentic web**, built under the **Agent Policy Protocol (APoP)** standard. Place it at:
 
-```
+\`\`\`
 https://example.com/.well-known/agent-policy.json
-```
+\`\`\`
 
 ---
 
@@ -25,42 +25,37 @@ https://example.com/.well-known/agent-policy.json
 
 **1. Create your policy** — save as `/.well-known/agent-policy.json`:
 
-```json
+\`\`\`json
 {
-  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
-  "version": "1.0",
-  "defaultPolicy": {
-    "allow": true,
-    "actions": ["read", "index", "summarize"],
-    "disallow": ["extract", "automated_purchase"],
-    "rateLimit": { "requests": 100, "window": "hour" },
-    "requireVerification": false
-  },
-  "pathPolicies": [
-    { "path": "/admin/*", "allow": false },
-    {
-      "path": "/api/*",
-      "allow": true,
-      "actions": ["api_call"],
-      "requireVerification": true
-    }
-  ]
+"$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+"version": "1.0",
+"defaultPolicy": {
+"allow": true,
+"actions": ["read", "index", "summarize"],
+"disallow": ["extract", "automated_purchase"],
+"rateLimit": { "requests": 100, "window": "hour" },
+"requireVerification": false
+},
+"pathPolicies": [
+{ "path": "/admin/_", "allow": false },
+{ "path": "/api/_", "allow": true, "actions": ["api_call"], "requireVerification": true }
+]
 }
-```
+\`\`\`
 
 **2. Test it** with curl:
 
-```bash
+\`\`\`bash
 curl -H "Agent-Name: MyBot" \
-     -H "Agent-Intent: read" \
-     https://example.com/.well-known/agent-policy.json
-```
+ -H "Agent-Intent: read" \
+ https://example.com/.well-known/agent-policy.json
+\`\`\`
 
 **3. Add the middleware** to your Express app:
 
-```bash
+\`\`\`bash
 cd middleware && npm install && node index.express.js
-```
+\`\`\`
 
 See [examples/](examples/) for 9 industry-specific policy templates.
 
@@ -83,7 +78,7 @@ See [examples/](examples/) for 9 industry-specific policy templates.
 - **Discovery**: 4 methods with defined priority — well-known URI, HTTP header, HTML meta tag, DNS TXT record
 - **10 action types**: `read`, `index`, `extract`, `summarize`, `render`, `api_call`, `form_submit`, `automated_purchase`, `tool_invoke`, `all`
 - **3 custom HTTP status codes**: `430 Agent Action Not Allowed`, `438 Agent Rate Limited`, `439 Agent Verification Required`
-- **3 identity tiers**: Anonymous, Identified, Verified
+- **3 identity tiers**: Anonymous → Identified → Verified
 - **4 verification methods**: `pkix`, `did`, `verifiable-credential`, `partner-token`
 - **Cross-protocol interop**: Links to A2A Agent Cards, MCP servers, WebMCP, UCP, APAAI
 
@@ -143,20 +138,20 @@ APoP emerged as a constructive path forward: an open, transparent, consent-based
 
 ## Project Structure
 
-```
-agent-policy.json              # Example v1.0 policy manifest
+\`\`\`
+agent-policy.json # Example v1.0 policy manifest
 spec/
-  schema/agent-policy.schema.json   # JSON Schema (draft 2020-12)
-  discovery.md                  # Discovery methods spec
-  agent-identification.md       # Agent headers & verification spec
-  http-extensions.md            # HTTP status codes & headers spec
+schema/agent-policy.schema.json # JSON Schema (draft 2020-12)
+discovery.md # Discovery methods spec
+agent-identification.md # Agent headers & verification spec
+http-extensions.md # HTTP status codes & headers spec
 middleware/
-  index.express.js              # Express.js reference middleware
-  index.js                      # Vercel serverless handler
-examples/                       # Industry-specific policy templates
-tests/conformance/              # Conformance test suite
-docs/                           # Project documentation
-```
+index.express.js # Express.js reference middleware
+index.js # Vercel serverless handler
+examples/ # Industry-specific policy templates
+tests/conformance/ # Conformance test suite
+docs/ # Project documentation
+\`\`\`
 
 ---
 
@@ -181,3 +176,4 @@ The Agent Policy Protocol (APoP) was initiated by [**Arun Vijayarengan**](https:
 
 Apache 2.0 — open for community contribution.
 Pull requests, RFCs, and implementation feedback are encouraged.
+READMEEOF

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://hospital.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": false,
+    "disallow": ["all"],
+    "requireVerification": true
+  },
+  "pathPolicies": [
+    {
+      "path": "/public/**",
+      "allow": true,
+      "actions": ["read", "index"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 50,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/patient/**",
+      "allow": false,
+      "disallow": ["all"]
+    },
+    {
+      "path": "/records/**",
+      "allow": false,
+      "disallow": ["all"]
+    },
+    {
+      "path": "/api/v1/appointments/*",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 20,
+        "window": "hour"
+      },
+      "agentAllowlist": [
+        "did:web:healthbot.epic.com",
+        "did:web:medical.google.com"
+      ]
+    },
+    {
+      "path": "/api/v1/directory/*",
+      "allow": true,
+      "actions": ["api_call", "read"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 100,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/admin/**",
+      "allow": false
+    }
+  ],
+  "verification": {
+    "method": ["verifiable-credential"],
+    "registry": "https://registry.agentpolicy.org",
+    "trustedIssuers": [
+      "did:web:trust.agentpolicy.org",
+      "did:web:hipaa-compliance.hhs.gov"
+    ],
+    "verificationEndpoint": "https://hospital.example.com/agent-verify"
+  },
+  "contact": {
+    "email": "compliance@hospital.example.com",
+    "policyUrl": "https://hospital.example.com/ai-policy",
+    "abuseUrl": "https://hospital.example.com/report-violation"
+  },
+  "metadata": {
+    "description": "HIPAA-sensitive healthcare policy: deny all by default, patient/records paths fully blocked, only allowlisted verified agents may book appointments. Public info (hours, locations) readable without verification.",
+    "owner": "Example Hospital System",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  }
+}

@@ -1,0 +1,51 @@
+name: Schema Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "examples/**"
+      - "agent-policy.json"
+      - "middleware/agent-policy.json"
+      - "spec/schema/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "examples/**"
+      - "agent-policy.json"
+      - "middleware/agent-policy.json"
+      - "spec/schema/**"
+
+jobs:
+  validate-schema:
+    name: Validate Policies Against Schema
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: tests/conformance/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tests/conformance
+        run: npm ci
+
+      - name: Validate all example policies
+        working-directory: tests/conformance
+        run: npm run validate:examples
+
+      - name: Validate schema is valid JSON Schema
+        run: |
+          node -e "
+            const schema = require('./spec/schema/agent-policy.schema.json');
+            console.log('Schema title:', schema.title);
+            console.log('Schema version:', schema.properties.version.default);
+            console.log('Required fields:', schema.required);
+            console.log('Schema is valid JSON');
+          "

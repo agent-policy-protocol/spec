@@ -1,0 +1,69 @@
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "disallow": ["extract", "form_submit", "automated_purchase", "tool_invoke"],
+    "rateLimit": {
+      "requests": 120,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/wp-content/uploads/**",
+      "allow": true,
+      "actions": ["read", "index"],
+      "requireVerification": false
+    },
+    {
+      "path": "/wp-admin/**",
+      "allow": false
+    },
+    {
+      "path": "/wp-login.php",
+      "allow": false
+    },
+    {
+      "path": "/wp-json/wp/v2/**",
+      "allow": true,
+      "actions": ["api_call", "read"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 300,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/wp-json/wc/v3/**",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 100,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/xmlrpc.php",
+      "allow": false
+    },
+    {
+      "path": "/feed/*",
+      "allow": true,
+      "actions": ["read", "index"],
+      "requireVerification": false
+    }
+  ],
+  "contact": {
+    "email": "admin@example.com"
+  },
+  "metadata": {
+    "description": "Sensible WordPress defaults: allow reading and indexing public content, block admin/login paths, allow REST API with rate limits, block XML-RPC. Drop-in template for WordPress sites.",
+    "owner": "WordPress Site Owner",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  }
+}

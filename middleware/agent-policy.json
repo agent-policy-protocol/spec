@@ -1,54 +1,70 @@
 {
-  "version": "0.1",
-  "default": {
-    "allow": [
-      "read",
-      "render"
-    ],
-    "disallow": [
-      "data-extraction",
-      "api-calls",
-      "automated-purchases"
-    ],
-    "rate_limit": {
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "render"],
+    "disallow": ["extract", "api_call", "automated_purchase"],
+    "rateLimit": {
       "requests": 100,
-      "per_seconds": 3600
+      "window": "hour"
     },
-    "require_verification": true
+    "requireVerification": true
   },
-  "paths": [
+  "pathPolicies": [
     {
-      "pattern": "/public/*",
-      "allow": [
-        "read",
-        "index"
-      ],
-      "require_verification": false
+      "path": "/public/*",
+      "allow": true,
+      "actions": ["read", "index", "summarize"],
+      "requireVerification": false
     },
     {
-      "pattern": "/api/private/*",
-      "disallow": [
-        "read",
-        "data-extraction"
-      ]
+      "path": "/api/private/*",
+      "allow": false,
+      "disallow": ["read", "extract"]
     },
     {
-      "pattern": "/admin/*",
-      "disallow": [
-        "all"
+      "path": "/admin/*",
+      "allow": false
+    },
+    {
+      "path": "/api/v1/*",
+      "allow": true,
+      "actions": ["read", "api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 1000,
+        "window": "hour"
+      },
+      "agentAllowlist": [
+        "did:web:comet.perplexity.ai",
+        "did:web:gemini.google.com"
       ]
     }
   ],
   "verification": {
-    "method": "pkix",
-    "registry": "https://registry.agentpolicy.org"
+    "method": ["did", "verifiable-credential", "pkix"],
+    "registry": "https://registry.agentpolicy.org",
+    "trustedIssuers": [
+      "did:web:trust.agentpolicy.org"
+    ],
+    "verificationEndpoint": "https://example.com/agent-verify"
   },
   "contact": {
     "email": "security@example.com",
-    "policy_url": "https://example.com/agent-policy"
+    "policyUrl": "https://example.com/agent-policy",
+    "abuseUrl": "https://example.com/report-abuse"
   },
-  "meta": {
-    "description": "Defines how AI agents may interact with this site under the Agent Policy Protocol (APoP) v0.1.",
-    "last_updated": "2025-11-05T00:00:00Z"
+  "metadata": {
+    "description": "Defines how AI agents may interact with this site under the Agent Policy Protocol (APoP) v1.0.",
+    "owner": "Example Corp",
+    "lastModified": "2025-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  },
+  "interop": {
+    "a2aAgentCard": "https://example.com/.well-known/agent.json",
+    "mcpServerUrl": "https://example.com/mcp",
+    "webmcpEnabled": false
   }
 }

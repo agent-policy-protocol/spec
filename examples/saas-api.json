@@ -1,0 +1,89 @@
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://api.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read"],
+    "disallow": ["extract", "automated_purchase", "form_submit"],
+    "rateLimit": {
+      "requests": 100,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/docs/**",
+      "allow": true,
+      "actions": ["read", "index", "summarize", "extract"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 500,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/api/v1/**",
+      "allow": true,
+      "actions": ["api_call", "read", "tool_invoke"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 5000,
+        "window": "hour"
+      },
+      "agentAllowlist": [
+        "did:web:comet.perplexity.ai",
+        "did:web:gemini.google.com",
+        "did:web:claude.anthropic.com",
+        "did:web:chatgpt.openai.com"
+      ]
+    },
+    {
+      "path": "/api/v1/admin/**",
+      "allow": false,
+      "agentDenylist": ["*"]
+    },
+    {
+      "path": "/api/v1/billing/**",
+      "allow": false
+    },
+    {
+      "path": "/health",
+      "allow": true,
+      "actions": ["read", "api_call"],
+      "requireVerification": false
+    },
+    {
+      "path": "/webhooks/**",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 100,
+        "window": "minute"
+      }
+    }
+  ],
+  "verification": {
+    "method": ["partner-token", "did"],
+    "registry": "https://registry.agentpolicy.org",
+    "verificationEndpoint": "https://api.example.com/agent-verify"
+  },
+  "contact": {
+    "email": "api-support@example.com",
+    "policyUrl": "https://api.example.com/docs/agent-policy",
+    "abuseUrl": "https://api.example.com/report-abuse"
+  },
+  "metadata": {
+    "description": "API-first SaaS: documentation freely accessible, API endpoints require verification with high rate limits for approved agents, admin/billing endpoints fully blocked.",
+    "owner": "Example SaaS Inc",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  },
+  "interop": {
+    "a2aAgentCard": "https://api.example.com/.well-known/agent.json",
+    "mcpServerUrl": "https://api.example.com/mcp",
+    "webmcpEnabled": false
+  }
+}

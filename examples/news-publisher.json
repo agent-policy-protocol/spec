@@ -1,0 +1,87 @@
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://news.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index"],
+    "disallow": ["extract", "automated_purchase", "form_submit"],
+    "rateLimit": {
+      "requests": 60,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/public/*",
+      "allow": true,
+      "actions": ["read", "index", "summarize"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 200,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/premium/*",
+      "allow": true,
+      "actions": ["read"],
+      "disallow": ["extract", "summarize", "index"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 20,
+        "window": "hour"
+      },
+      "agentAllowlist": [
+        "did:web:comet.perplexity.ai",
+        "did:web:gemini.google.com",
+        "did:web:searchgpt.openai.com"
+      ]
+    },
+    {
+      "path": "/archive/**",
+      "allow": true,
+      "actions": ["read", "index", "summarize"],
+      "requireVerification": false
+    },
+    {
+      "path": "/admin/*",
+      "allow": false
+    },
+    {
+      "path": "/api/v1/*",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 500,
+        "window": "hour"
+      }
+    }
+  ],
+  "verification": {
+    "method": ["did", "verifiable-credential"],
+    "registry": "https://registry.agentpolicy.org",
+    "trustedIssuers": [
+      "did:web:trust.agentpolicy.org"
+    ],
+    "verificationEndpoint": "https://news.example.com/agent-verify"
+  },
+  "contact": {
+    "email": "ai-policy@news.example.com",
+    "policyUrl": "https://news.example.com/ai-agent-policy",
+    "abuseUrl": "https://news.example.com/report-abuse"
+  },
+  "metadata": {
+    "description": "News publisher policy: public content indexable, premium content restricted to verified partners, extraction blocked to protect intellectual property.",
+    "owner": "Example News Corp",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  },
+  "interop": {
+    "a2aAgentCard": "https://news.example.com/.well-known/agent.json",
+    "mcpServerUrl": "https://news.example.com/mcp",
+    "webmcpEnabled": false
+  }
+}

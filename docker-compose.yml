@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  apop-middleware:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+    volumes:
+      - ./agent-policy.json:/app/agent-policy.json:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-q",
+          "--spider",
+          "http://localhost:3000/.well-known/agent-policy.json",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  test-agent:
+    build:
+      context: .
+      dockerfile: docker/test-agent/Dockerfile
+    depends_on:
+      apop-middleware:
+        condition: service_healthy
+    environment:
+      - APOP_SERVER=http://apop-middleware:3000

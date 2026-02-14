@@ -1,0 +1,361 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "title": "Agent Policy Protocol (APoP) v1.0 Manifest",
+  "description": "Defines how AI agents may interact with a website — what they can access, what actions are allowed, rate limits, and verification requirements. Part of the Agent Policy Protocol (APoP) standard.",
+  "type": "object",
+  "required": ["version", "defaultPolicy"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this JSON Schema for validation.",
+      "format": "uri"
+    },
+    "version": {
+      "type": "string",
+      "description": "APoP protocol version. Use '1.0' for this specification.",
+      "enum": ["0.1", "1.0"],
+      "default": "1.0"
+    },
+    "policyUrl": {
+      "type": "string",
+      "description": "Canonical URL where this policy is hosted (e.g., https://example.com/.well-known/agent-policy.json).",
+      "format": "uri"
+    },
+    "defaultPolicy": {
+      "$ref": "#/$defs/PolicyRule",
+      "description": "Site-wide fallback rules. Applies when no path-specific rule matches the request."
+    },
+    "pathPolicies": {
+      "type": "array",
+      "description": "Path-specific policy overrides. Evaluated in order; first matching path wins.",
+      "items": {
+        "$ref": "#/$defs/PathPolicy"
+      }
+    },
+    "verification": {
+      "$ref": "#/$defs/Verification",
+      "description": "Configuration for how agent identity verification is handled."
+    },
+    "contact": {
+      "$ref": "#/$defs/Contact",
+      "description": "Contact information for policy questions, abuse reports, or compliance queries."
+    },
+    "metadata": {
+      "$ref": "#/$defs/Metadata",
+      "description": "Human-readable metadata about this policy."
+    },
+    "interop": {
+      "$ref": "#/$defs/Interoperability",
+      "description": "Optional cross-protocol interoperability declarations."
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "ActionType": {
+      "type": "string",
+      "description": "Standardized action type that an agent may perform.",
+      "enum": [
+        "read",
+        "index",
+        "extract",
+        "summarize",
+        "render",
+        "api_call",
+        "form_submit",
+        "automated_purchase",
+        "tool_invoke",
+        "all"
+      ]
+    },
+    "RateLimit": {
+      "type": "object",
+      "description": "Rate limiting configuration for agent requests.",
+      "required": ["requests", "window"],
+      "properties": {
+        "requests": {
+          "type": "integer",
+          "description": "Maximum number of requests allowed within the specified window.",
+          "minimum": 0
+        },
+        "window": {
+          "type": "string",
+          "description": "Time window for rate limiting.",
+          "enum": ["minute", "hour", "day"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "PolicyRule": {
+      "type": "object",
+      "description": "A set of rules governing agent access.",
+      "required": ["allow"],
+      "properties": {
+        "allow": {
+          "oneOf": [
+            {
+              "type": "boolean",
+              "description": "If true, access is allowed by default. If false, access is denied."
+            },
+            {
+              "type": "array",
+              "description": "List of explicitly allowed action types.",
+              "items": { "$ref": "#/$defs/ActionType" }
+            }
+          ]
+        },
+        "disallow": {
+          "type": "array",
+          "description": "List of explicitly disallowed action types. Takes precedence over 'allow' when both are present.",
+          "items": { "$ref": "#/$defs/ActionType" }
+        },
+        "actions": {
+          "type": "array",
+          "description": "Explicit list of permitted action types (alternative to boolean allow).",
+          "items": { "$ref": "#/$defs/ActionType" }
+        },
+        "rateLimit": {
+          "$ref": "#/$defs/RateLimit"
+        },
+        "requireVerification": {
+          "type": "boolean",
+          "description": "If true, agents must verify their identity before access is granted.",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "PathPolicy": {
+      "type": "object",
+      "description": "Path-specific policy override. Extends PolicyRule with path matching and agent filtering.",
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "URL path pattern. Supports glob-style wildcards: * matches a single path segment, ** matches multiple segments.",
+          "examples": ["/public/*", "/api/**", "/admin/*", "/checkout/*"]
+        },
+        "allow": {
+          "oneOf": [
+            { "type": "boolean" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/$defs/ActionType" }
+            }
+          ]
+        },
+        "disallow": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ActionType" }
+        },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ActionType" }
+        },
+        "rateLimit": {
+          "$ref": "#/$defs/RateLimit"
+        },
+        "requireVerification": {
+          "type": "boolean",
+          "default": false
+        },
+        "agentAllowlist": {
+          "type": "array",
+          "description": "List of agent identifiers explicitly allowed on this path. If present, only listed agents may access. Accepts DID URIs, email-style identifiers, or agent name patterns.",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["did:web:comet.perplexity.ai", "did:web:gemini.google.com", "mybot@company.com"]]
+        },
+        "agentDenylist": {
+          "type": "array",
+          "description": "List of agent identifiers explicitly denied on this path. Agents on this list are blocked regardless of other rules.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Verification": {
+      "type": "object",
+      "description": "Configuration for agent identity verification.",
+      "required": ["method"],
+      "properties": {
+        "method": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": ["pkix", "did", "verifiable-credential", "partner-token"]
+            },
+            {
+              "type": "array",
+              "description": "Multiple accepted verification methods (any one suffices).",
+              "items": {
+                "type": "string",
+                "enum": ["pkix", "did", "verifiable-credential", "partner-token"]
+              }
+            }
+          ],
+          "description": "Supported verification method(s). pkix = PKI signature validation, did = Decentralized Identifiers, verifiable-credential = W3C Verifiable Credentials (AP2 alignment), partner-token = pre-shared API token."
+        },
+        "registry": {
+          "type": "string",
+          "description": "URL of the verification registry for identity lookups.",
+          "format": "uri"
+        },
+        "trustedIssuers": {
+          "type": "array",
+          "description": "List of trusted Verifiable Credential issuer DIDs. Only relevant when method includes 'verifiable-credential'.",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["did:web:trust.agentpolicy.org", "did:web:google.com", "did:web:anthropic.com"]]
+        },
+        "verificationEndpoint": {
+          "type": "string",
+          "description": "URL where agents can initiate verification (e.g., key exchange or token request).",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Contact": {
+      "type": "object",
+      "description": "Contact information for the policy owner.",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Contact email for policy questions or compliance.",
+          "format": "email"
+        },
+        "policyUrl": {
+          "type": "string",
+          "description": "Human-readable policy page URL.",
+          "format": "uri"
+        },
+        "abuseUrl": {
+          "type": "string",
+          "description": "URL for reporting agent abuse or policy violations.",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Metadata": {
+      "type": "object",
+      "description": "Human-readable metadata about this policy.",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Brief description of this policy's purpose."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Organization or individual that owns this website/policy."
+        },
+        "maintainer": {
+          "type": "string",
+          "description": "Contact for the person or team maintaining the policy."
+        },
+        "lastModified": {
+          "type": "string",
+          "description": "ISO 8601 timestamp of last policy update.",
+          "format": "date-time"
+        },
+        "license": {
+          "type": "string",
+          "description": "License URL or SPDX identifier for the policy content."
+        }
+      },
+      "additionalProperties": false
+    },
+    "Interoperability": {
+      "type": "object",
+      "description": "Cross-protocol interoperability declarations. Links this APoP policy to other agentic protocol endpoints.",
+      "properties": {
+        "a2aAgentCard": {
+          "type": "string",
+          "description": "URL to the site's A2A Agent Card (if the site operates as an A2A agent). Typically /.well-known/agent.json.",
+          "format": "uri"
+        },
+        "mcpServerUrl": {
+          "type": "string",
+          "description": "URL to the site's MCP server endpoint (if the site exposes MCP tools).",
+          "format": "uri"
+        },
+        "webmcpEnabled": {
+          "type": "boolean",
+          "description": "Whether the site exposes WebMCP tools via navigator.modelContext.",
+          "default": false
+        },
+        "ucpCapabilities": {
+          "type": "string",
+          "description": "URL to the site's UCP capability profile (if the site supports Universal Commerce Protocol).",
+          "format": "uri"
+        },
+        "apaaiEndpoint": {
+          "type": "string",
+          "description": "URL to the site's APAAI accountability endpoint for action logging and evidence.",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+      "version": "1.0",
+      "defaultPolicy": {
+        "allow": true,
+        "actions": ["read", "render"],
+        "rateLimit": { "requests": 100, "window": "hour" },
+        "requireVerification": false
+      }
+    },
+    {
+      "version": "1.0",
+      "policyUrl": "https://example.com/.well-known/agent-policy.json",
+      "defaultPolicy": {
+        "allow": true,
+        "actions": ["read", "render"],
+        "rateLimit": { "requests": 100, "window": "hour" },
+        "requireVerification": false
+      },
+      "pathPolicies": [
+        {
+          "path": "/public/*",
+          "allow": true,
+          "actions": ["read", "index", "summarize"],
+          "requireVerification": false
+        },
+        {
+          "path": "/api/*",
+          "allow": true,
+          "actions": ["read", "api_call"],
+          "requireVerification": true,
+          "rateLimit": { "requests": 1000, "window": "hour" }
+        },
+        {
+          "path": "/admin/*",
+          "allow": false
+        }
+      ],
+      "verification": {
+        "method": "verifiable-credential",
+        "registry": "https://registry.agentpolicy.org",
+        "trustedIssuers": ["did:web:trust.agentpolicy.org"]
+      },
+      "contact": {
+        "email": "security@example.com",
+        "policyUrl": "https://example.com/agent-policy"
+      },
+      "metadata": {
+        "description": "Agent access policy for Example Corp",
+        "owner": "Example Corp",
+        "lastModified": "2026-02-14T00:00:00Z"
+      }
+    }
+  ]
+}

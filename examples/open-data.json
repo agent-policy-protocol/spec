@@ -1,0 +1,50 @@
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://data.example.gov/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "extract", "summarize", "render", "api_call"],
+    "rateLimit": {
+      "requests": 10000,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/datasets/**",
+      "allow": true,
+      "actions": ["read", "index", "extract", "summarize", "api_call"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 50000,
+        "window": "day"
+      }
+    },
+    {
+      "path": "/api/v1/**",
+      "allow": true,
+      "actions": ["api_call", "read", "extract"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 10000,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/admin/**",
+      "allow": false
+    }
+  ],
+  "contact": {
+    "email": "opendata@example.gov",
+    "policyUrl": "https://data.example.gov/terms"
+  },
+  "metadata": {
+    "description": "Open data portal: fully permissive access for all agents. High rate limits, no verification required. Intended for government open data initiatives.",
+    "owner": "Example Government Data Office",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "CC0-1.0"
+  }
+}

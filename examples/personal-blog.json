@@ -1,0 +1,46 @@
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://myblog.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "disallow": ["extract", "api_call", "form_submit", "automated_purchase", "tool_invoke"],
+    "rateLimit": {
+      "requests": 100,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/posts/**",
+      "allow": true,
+      "actions": ["read", "index", "summarize"],
+      "requireVerification": false
+    },
+    {
+      "path": "/feed/*",
+      "allow": true,
+      "actions": ["read", "index"],
+      "requireVerification": false
+    },
+    {
+      "path": "/admin/**",
+      "allow": false
+    },
+    {
+      "path": "/wp-admin/**",
+      "allow": false
+    }
+  ],
+  "contact": {
+    "email": "hello@myblog.example.com"
+  },
+  "metadata": {
+    "description": "Simple personal blog: allow reading, indexing, and summarizing all posts. No verification needed. Block extraction and admin paths.",
+    "owner": "Jane Doe",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "CC-BY-4.0"
+  }
+}

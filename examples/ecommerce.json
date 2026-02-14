@@ -1,0 +1,102 @@
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://shop.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "render", "index"],
+    "disallow": ["extract", "form_submit"],
+    "rateLimit": {
+      "requests": 200,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/products/**",
+      "allow": true,
+      "actions": ["read", "render", "index", "summarize"],
+      "requireVerification": false
+    },
+    {
+      "path": "/checkout/*",
+      "allow": true,
+      "actions": ["render", "automated_purchase"],
+      "disallow": ["extract"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 10,
+        "window": "minute"
+      },
+      "agentAllowlist": [
+        "did:web:comet.perplexity.ai",
+        "did:web:shopping.google.com"
+      ]
+    },
+    {
+      "path": "/cart/*",
+      "allow": true,
+      "actions": ["render", "api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 30,
+        "window": "minute"
+      }
+    },
+    {
+      "path": "/account/**",
+      "allow": false
+    },
+    {
+      "path": "/admin/**",
+      "allow": false
+    },
+    {
+      "path": "/api/v1/products/*",
+      "allow": true,
+      "actions": ["api_call", "read"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 1000,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/api/v1/orders/*",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 50,
+        "window": "hour"
+      }
+    }
+  ],
+  "verification": {
+    "method": ["verifiable-credential", "partner-token"],
+    "registry": "https://registry.agentpolicy.org",
+    "trustedIssuers": [
+      "did:web:trust.agentpolicy.org",
+      "did:web:commerce.google.com"
+    ],
+    "verificationEndpoint": "https://shop.example.com/agent-verify"
+  },
+  "contact": {
+    "email": "agents@shop.example.com",
+    "policyUrl": "https://shop.example.com/agent-policy",
+    "abuseUrl": "https://shop.example.com/report-bot-abuse"
+  },
+  "metadata": {
+    "description": "E-commerce store: product pages freely readable, checkout requires verified agents, automated purchases restricted to allowlisted partners.",
+    "owner": "Example Shop Inc",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  },
+  "interop": {
+    "a2aAgentCard": "https://shop.example.com/.well-known/agent.json",
+    "mcpServerUrl": "https://shop.example.com/mcp",
+    "webmcpEnabled": true,
+    "ucpCapabilities": "https://shop.example.com/.well-known/ucp.json"
+  }
+}

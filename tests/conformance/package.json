@@ -1,0 +1,21 @@
+{
+  "name": "apop-conformance-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Conformance test suite for APoP (Agent Policy Protocol) middleware implementations",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "validate:examples": "node validate-examples.js"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0",
+    "supertest": "^7.0.0",
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

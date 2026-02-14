@@ -1,0 +1,91 @@
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://platform.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "render", "index", "summarize"],
+    "disallow": ["automated_purchase"],
+    "rateLimit": {
+      "requests": 500,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/api/v1/**",
+      "allow": true,
+      "actions": ["api_call", "read", "tool_invoke"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 2000,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/mcp/**",
+      "allow": true,
+      "actions": ["tool_invoke", "api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 1000,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/a2a/**",
+      "allow": true,
+      "actions": ["api_call", "tool_invoke"],
+      "requireVerification": true
+    },
+    {
+      "path": "/commerce/**",
+      "allow": true,
+      "actions": ["api_call", "automated_purchase"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 50,
+        "window": "hour"
+      },
+      "agentAllowlist": [
+        "did:web:comet.perplexity.ai",
+        "did:web:shopping.google.com",
+        "did:web:claude.anthropic.com"
+      ]
+    },
+    {
+      "path": "/admin/**",
+      "allow": false
+    }
+  ],
+  "verification": {
+    "method": ["did", "verifiable-credential", "pkix", "partner-token"],
+    "registry": "https://registry.agentpolicy.org",
+    "trustedIssuers": [
+      "did:web:trust.agentpolicy.org",
+      "did:web:google.com",
+      "did:web:anthropic.com",
+      "did:web:openai.com"
+    ],
+    "verificationEndpoint": "https://platform.example.com/agent-verify"
+  },
+  "contact": {
+    "email": "platform@example.com",
+    "policyUrl": "https://platform.example.com/agent-policy",
+    "abuseUrl": "https://platform.example.com/report-abuse"
+  },
+  "metadata": {
+    "description": "Full multi-protocol interoperability example: A2A Agent Card, MCP server, WebMCP tools, UCP commerce capabilities, and APAAI audit endpoint all declared. Demonstrates APoP as the authorization layer for the complete agentic stack.",
+    "owner": "Example Platform Inc",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  },
+  "interop": {
+    "a2aAgentCard": "https://platform.example.com/.well-known/agent.json",
+    "mcpServerUrl": "https://platform.example.com/mcp",
+    "webmcpEnabled": true,
+    "ucpCapabilities": "https://platform.example.com/.well-known/ucp.json",
+    "apaaiEndpoint": "https://platform.example.com/apaai/audit"
+  }
+}
