@@ -104,20 +104,68 @@ See [examples/](examples/) for 9 industry-specific policy templates.
 
 ---
 
-## Ecosystem Positioning
+## APoP's Unique Position
 
-APoP is the **authorization layer** that complements the broader agentic protocol ecosystem:
+APoP is the **missing consent & authorization layer** in the agentic web stack. Every protocol above assumes the agent has the right to act. APoP is what makes that assumption **explicit, verifiable, and enforceable**.
 
-| Protocol                                                             | What It Does                                              | How APoP Relates                                                                                |
-| -------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| **[MCP](https://modelcontextprotocol.io/)** (Model Context Protocol) | Defines how agents invoke tools and access context        | APoP gates _which_ MCP tools an agent may call. `interop.mcpServerUrl` links to MCP endpoint.   |
-| **[A2A](https://google.github.io/A2A/)** (Agent-to-Agent Protocol)   | Defines how agents communicate with each other            | APoP enforces access rules _before_ A2A delegation. `interop.a2aAgentCard` links to Agent Card. |
-| **[WebMCP](https://anthropic.com/research/webmcp)**                  | Exposes browser-side tools via `navigator.modelContext`   | APoP determines _if_ a WebMCP tool may execute. `interop.webmcpEnabled` declares support.       |
-| **[AP2](https://protocols.ai/ap2)** (Agent Protocol v2)              | Agent lifecycle and identity using Verifiable Credentials | APoP supports AP2's VC-based verification via `verifiable-credential` method.                   |
-| **[APAAI](https://apaai.org/)**                                      | Accountability and audit logging for agent actions        | APoP works alongside APAAI for compliance. `interop.apaaiEndpoint` links to audit endpoint.     |
-| **[UCP](https://ucp.dev/)** (Universal Commerce Protocol)            | Agent-mediated commerce transactions                      | APoP governs `automated_purchase` actions. `interop.ucpCapabilities` links to UCP profile.      |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    THE AGENTIC WEB STACK                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│  │  WebMCP  │  │   MCP    │  │   A2A    │  │    AP    │       │
+│  │ (tools)  │  │ (tools)  │  │ (agents) │  │ (tasks)  │       │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘       │
+│       │              │              │              │             │
+│       └──────────────┴──────┬───────┴──────────────┘             │
+│                             │                                    │
+│                    ┌────────▼────────┐                           │
+│                    │      APoP      │  ← Consent & Access       │
+│                    │ (authorization │     Governance Layer       │
+│                    │  & consent)    │                            │
+│                    └────────┬────────┘                           │
+│                             │                                    │
+│       ┌─────────────────────┼─────────────────────┐             │
+│       │                     │                     │             │
+│  ┌────▼─────┐  ┌────────────▼──────┐  ┌──────────▼───┐        │
+│  │   UCP    │  │       AP2        │  │    APAAI     │        │
+│  │(commerce)│  │   (payments)     │  │(accountability)│       │
+│  └──────────┘  └──────────────────┘  └───────────────┘        │
+│                                                                 │
+│                    ┌──────────────────┐                         │
+│                    │    Website /     │                         │
+│                    │   robots.txt     │                         │
+│                    └──────────────────┘                         │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 > **MCP/WebMCP solve _how_ agents invoke tools. A2A solves _how_ agents talk to each other. APoP solves _whether they're allowed to_.**
+
+---
+
+## Current Protocol Landscape
+
+| Protocol                      | Purpose                                                     | Gap APoP Fills                                                                         |
+| ----------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **WebMCP** (Google/Microsoft) | Browser-native tool contracts for agent-website interaction | No consent management; assumes permission already granted                              |
+| **MCP** (Anthropic)           | Server-side tool/data integration for LLMs                  | No website-level policies; focuses on backend services                                 |
+| **A2A** (Agent-to-Agent)      | Inter-agent communication standard                          | No resource owner authorization; agents need permission to access underlying resources |
+| **AP2** (Agent Payments)      | Payment flows for agent transactions                        | Doesn't address whether agent should access resource before payment                    |
+| **APAAI** (Auditing Protocol) | Post-hoc agent action auditing                              | Reactive, not preventive; APoP provides proactive control                              |
+| **UCP** (Universal Commerce)  | Standardized e-commerce for agents                          | No access control; APoP gates which agents can use commerce tools                      |
+
+### Interoperability
+
+APoP links directly to these protocols via the `interop` field in your policy:
+
+| Field                     | Links To                  |
+| ------------------------- | ------------------------- |
+| `interop.mcpServerUrl`    | Your MCP server endpoint  |
+| `interop.a2aAgentCard`    | Your A2A Agent Card       |
+| `interop.webmcpEnabled`   | WebMCP tool availability  |
+| `interop.ucpCapabilities` | Your UCP commerce profile |
+| `interop.apaaiEndpoint`   | Your APAAI audit endpoint |
 
 ---
 
