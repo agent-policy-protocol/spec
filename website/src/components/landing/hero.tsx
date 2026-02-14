@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Terminal } from "lucide-react";
 import { CopyButton } from "@/components/copy-button";
+import { TerminalDemo } from "@/components/landing/terminal-demo";
 
 export function Hero() {
   return (
@@ -69,6 +70,11 @@ export function Hero() {
               <CopyButton text="pip install apop" />
             </div>
           </div>
+        </div>
+
+        {/* Terminal Demo — hidden on small screens */}
+        <div className="hidden md:block mt-16">
+          <TerminalDemo />
         </div>
       </div>
     </section>

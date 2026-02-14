@@ -31,6 +31,7 @@ const footerLinks = {
       label: "License (Apache 2.0)",
       external: true,
     },
+    { href: "/privacy", label: "Privacy Policy" },
   ],
 };
 

@@ -1,3 +1,5 @@
+import { EcosystemDiagram } from "@/components/landing/ecosystem-diagram";
+
 export function EcosystemPosition() {
   const protocols = [
     {
@@ -50,6 +52,10 @@ export function EcosystemPosition() {
           </p>
         </div>
 
+        {/* Interactive Diagram */}
+        <EcosystemDiagram />
+
+        {/* Detail Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
