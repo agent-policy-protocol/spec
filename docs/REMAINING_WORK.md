@@ -104,22 +104,22 @@ The root README has been updated to reflect v1.0.
 
 Build production-quality middleware and SDKs that demonstrate the v1.0 spec in practice.
 
-### 2.1 Node.js SDK (`sdk/node/`)
+### 2.1 Node.js SDK (`sdk/node/`) ✅
 
 **Action Plan**:
 
-- [ ] Create `sdk/node/` package with TypeScript
-- [ ] `src/parser.ts` — Parse and validate `agent-policy.json` against the JSON Schema (use `ajv`)
-- [ ] `src/discovery.ts` — Implement the 4-method discovery chain (well-known → HTTP header → meta tag → DNS)
-- [ ] `src/matcher.ts` — Path matching engine with glob support
-- [ ] `src/enforcer.ts` — Policy enforcement logic (allowlist, denylist, intent checking, rate limits)
-- [ ] `src/headers.ts` — Parse/set APoP request and response headers
-- [ ] `src/middleware/express.ts` — Express middleware wrapper
-- [ ] `src/middleware/vercel.ts` — Vercel serverless wrapper
-- [ ] `src/middleware/nextjs.ts` — Next.js middleware wrapper
-- [ ] `src/types.ts` — TypeScript type definitions generated from JSON Schema
-- [ ] `tests/` — Unit tests for all modules (vitest)
-- [ ] `package.json`, `tsconfig.json`, `README.md`
+- [x] Create `sdk/node/` package with TypeScript
+- [x] `src/parser.ts` — Parse and validate `agent-policy.json` against the JSON Schema (use `ajv`)
+- [x] `src/discovery.ts` — Implement the 4-method discovery chain (well-known → HTTP header → meta tag → DNS)
+- [x] `src/matcher.ts` — Path matching engine with glob support
+- [x] `src/enforcer.ts` — Policy enforcement logic (allowlist, denylist, intent checking, rate limits)
+- [x] `src/headers.ts` — Parse/set APoP request and response headers
+- [x] `src/middleware/express.ts` — Express middleware wrapper
+- [x] `src/middleware/vercel.ts` — Vercel serverless wrapper
+- [x] `src/middleware/nextjs.ts` — Next.js middleware wrapper
+- [x] `src/types.ts` — TypeScript type definitions generated from JSON Schema
+- [x] `tests/` — Unit tests for all modules (vitest) — 101 tests across 6 files
+- [x] `package.json`, `tsconfig.json`, `README.md`
 - [ ] Publish as `@apop/node` on npm
 
 **Output files**: `sdk/node/**`
