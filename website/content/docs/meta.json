@@ -11,9 +11,20 @@
     "specification/discovery",
     "specification/agent-identification",
     "specification/http-extensions",
+    "specification/schema-reference",
+    "specification/changelog",
     "---SDKs---",
     "sdks/overview",
+    "...sdks/node",
+    "...sdks/python",
+    "---Examples---",
+    "...examples",
+    "---Guides---",
+    "...guides",
     "---Contributing---",
-    "contributing/how-to-contribute"
+    "contributing/how-to-contribute",
+    "contributing/spec-changes",
+    "contributing/sdk-development",
+    "contributing/conformance-tests"
   ]
 }

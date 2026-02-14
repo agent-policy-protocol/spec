@@ -1,0 +1,118 @@
+---
+title: Next.js Middleware
+description: Integrate APoP enforcement into Next.js applications with the @apop/node SDK.
+---
+
+# Next.js Middleware
+
+Enforce APoP policies at the edge in Next.js applications using Next.js middleware.
+
+## Import
+
+```ts
+import { createNextMiddleware } from "@apop/node/middleware/nextjs";
+```
+
+## Quick Start
+
+Create a `middleware.ts` file at your project root:
+
+```ts title="middleware.ts"
+import { NextResponse } from "next/server";
+import { createNextMiddleware } from "@apop/node/middleware/nextjs";
+
+const policy = {
+  version: "1.0",
+  policyUrl: "https://example.com/.well-known/agent-policy.json",
+  defaultPolicy: {
+    allow: true,
+    actions: ["read", "render"],
+    rateLimit: { requests: 100, window: "hour" },
+  },
+  pathPolicies: [
+    { path: "/admin/*", allow: false },
+    { path: "/api/**", allow: true, requireVerification: true },
+  ],
+};
+
+const apop = createNextMiddleware({ policy });
+
+export function middleware(request) {
+  const result = apop(request, NextResponse);
+  if (result) return result; // Blocked by policy
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: "/:path*",
+};
+```
+
+## `createNextMiddleware(options)`
+
+Creates a middleware function compatible with Next.js middleware.
+
+### Parameters
+
+| Parameter               | Type          | Required | Default | Description                             |
+| ----------------------- | ------------- | -------- | ------- | --------------------------------------- |
+| `options.policy`        | `AgentPolicy` | Yes      | —       | The APoP policy to enforce              |
+| `options.skipNonAgents` | `boolean`     | No       | `true`  | Skip enforcement for non-agent requests |
+
+### Returns
+
+A function that takes `(request, NextResponse)` and returns:
+
+- `null` if the request is allowed (call `NextResponse.next()`)
+- A `NextResponse` with the appropriate status code if blocked
+
+## Serving the Policy
+
+To serve the policy file, add it to your `public` directory:
+
+```bash
+mkdir -p public/.well-known
+cp agent-policy.json public/.well-known/agent-policy.json
+```
+
+Or create an API route:
+
+```ts title="app/api/.well-known/agent-policy/route.ts"
+import { NextResponse } from "next/server";
+
+const policy = {
+  /* your policy */
+};
+
+export function GET() {
+  return NextResponse.json(policy, {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
+}
+```
+
+## Middleware Matcher
+
+Configure which routes the middleware applies to:
+
+```ts
+// All routes
+export const config = { matcher: "/:path*" };
+
+// Only API routes
+export const config = { matcher: "/api/:path*" };
+
+// Exclude static files
+export const config = {
+  matcher: "/((?!_next/static|_next/image|favicon.ico).*)",
+};
+```
+
+## Notes
+
+- Next.js middleware runs at the edge — the policy is evaluated before the request reaches your application.
+- The middleware is compatible with Next.js 13+ (App Router and Pages Router).
+- For static file serving of the policy, the `public/.well-known/` approach is simplest.

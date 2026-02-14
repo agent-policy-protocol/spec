@@ -1,0 +1,137 @@
+---
+title: News Publisher
+description: APoP policy template for news and media websites — protect premium content while allowing indexing.
+---
+
+# News Publisher
+
+A policy template for news and media websites that need to protect premium content while allowing public articles to be indexed and summarized.
+
+## Use Case
+
+- Allow AI agents to read and index public articles
+- Restrict premium/paywalled content to verified partners only
+- Block content extraction to protect intellectual property
+- Provide high rate limits for the archive, lower for premium
+- Enable MCP and A2A interoperability
+
+## Key Features
+
+| Feature             | Configuration                                           |
+| ------------------- | ------------------------------------------------------- |
+| **Default Access**  | Read and index allowed, extraction blocked              |
+| **Premium Content** | Read-only, verified agents only, allowlisted partners   |
+| **Public Content**  | Read, index, summarize with generous rate limits        |
+| **Archive**         | Fully accessible for reading, indexing, and summarizing |
+| **Admin**           | Fully blocked                                           |
+| **API**             | Accessible with verification                            |
+| **Verification**    | DID and Verifiable Credentials                          |
+| **Rate Limits**     | 60/hour default, 200/hour public, 20/hour premium       |
+
+## Full Policy
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://news.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index"],
+    "disallow": ["extract", "automated_purchase", "form_submit"],
+    "rateLimit": {
+      "requests": 60,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/public/*",
+      "allow": true,
+      "actions": ["read", "index", "summarize"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 200,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/premium/*",
+      "allow": true,
+      "actions": ["read"],
+      "disallow": ["extract", "summarize", "index"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 20,
+        "window": "hour"
+      },
+      "agentAllowlist": [
+        "did:web:comet.perplexity.ai",
+        "did:web:gemini.google.com",
+        "did:web:searchgpt.openai.com"
+      ]
+    },
+    {
+      "path": "/archive/**",
+      "allow": true,
+      "actions": ["read", "index", "summarize"],
+      "requireVerification": false
+    },
+    {
+      "path": "/admin/*",
+      "allow": false
+    },
+    {
+      "path": "/api/v1/*",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 500,
+        "window": "hour"
+      }
+    }
+  ],
+  "verification": {
+    "method": ["did", "verifiable-credential"],
+    "registry": "https://registry.agentpolicy.org",
+    "trustedIssuers": ["did:web:trust.agentpolicy.org"],
+    "verificationEndpoint": "https://news.example.com/agent-verify"
+  },
+  "contact": {
+    "email": "ai-policy@news.example.com",
+    "policyUrl": "https://news.example.com/ai-agent-policy",
+    "abuseUrl": "https://news.example.com/report-abuse"
+  },
+  "metadata": {
+    "description": "News publisher policy: public content indexable, premium content restricted to verified partners, extraction blocked to protect intellectual property.",
+    "owner": "Example News Corp",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  },
+  "interop": {
+    "a2aAgentCard": "https://news.example.com/.well-known/agent.json",
+    "mcpServerUrl": "https://news.example.com/mcp",
+    "webmcpEnabled": false
+  }
+}
+```
+
+## How It Works
+
+### Default Policy
+
+All agents can read and index content by default with 60 requests/hour. Extraction, automated purchases, and form submissions are blocked.
+
+### Premium Content Protection
+
+The `/premium/*` path restricts access to read-only for verified agents on the allowlist. This protects paywalled articles from unauthorized summarization or data extraction.
+
+### Public Content
+
+The `/public/*` path allows generous access (200 requests/hour) with reading, indexing, and summarizing enabled — ideal for free-tier articles.
+
+### Partner Verification
+
+The `agentAllowlist` on premium content ensures only trusted AI agents (Perplexity, Gemini, SearchGPT) can access paywalled material after verification.

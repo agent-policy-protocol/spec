@@ -1,0 +1,67 @@
+---
+title: Installation
+description: Install and set up the @apop/node SDK for Node.js.
+---
+
+# Installation
+
+## Requirements
+
+- **Node.js 18+** (uses built-in `fetch` and `dns/promises`)
+- ESM or CommonJS project
+
+## Install
+
+```bash npm2yarn
+npm install @apop/node
+```
+
+## ESM Setup
+
+The SDK is published as an ESM package. Make sure your project is configured for ESM:
+
+```json title="package.json"
+{
+  "type": "module"
+}
+```
+
+Or use the `.mjs` extension for your files.
+
+## TypeScript
+
+The SDK ships with full TypeScript type definitions. No additional `@types/` package is needed.
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022"
+  }
+}
+```
+
+## Verify Installation
+
+```ts
+import { parsePolicy, enforce, discoverPolicy } from "@apop/node";
+
+console.log("@apop/node installed successfully!");
+```
+
+## What's Included
+
+| Module         | Description                                                    |
+| -------------- | -------------------------------------------------------------- |
+| **Parser**     | Parse and validate `agent-policy.json` against the JSON Schema |
+| **Enforcer**   | Evaluate agent requests against your parsed policy             |
+| **Discovery**  | Discover policies using all 4 discovery methods                |
+| **Headers**    | Parse and generate APoP HTTP headers                           |
+| **Middleware** | Express, Next.js, and Vercel Edge integrations                 |
+
+## Next Steps
+
+- [Parser](/docs/sdks/node/parser) — Parse and validate policies
+- [Enforcer](/docs/sdks/node/enforcer) — Enforce policies on requests
+- [Express Middleware](/docs/sdks/node/middleware-express) — Integrate with Express

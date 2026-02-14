@@ -1,0 +1,162 @@
+---
+title: Enforcer
+description: Enforce APoP policies against agent requests with the @apop/node SDK.
+---
+
+# Enforcer
+
+The enforcer module evaluates an incoming agent request against a parsed APoP policy and returns an enforcement decision with the appropriate HTTP status code and headers.
+
+## Import
+
+```ts
+import { enforce } from "@apop/node";
+import type { EnforcementResult, RequestContext } from "@apop/node";
+```
+
+## `enforce(policy, context)`
+
+Evaluate a request against the policy and return an enforcement result.
+
+```ts
+import { enforce, parsePolicy } from "@apop/node";
+
+const { policy } = parsePolicy(
+  JSON.stringify({
+    version: "1.0",
+    defaultPolicy: {
+      allow: true,
+      actions: ["read", "summarize"],
+      disallow: ["extract"],
+      rateLimit: { requests: 100, window: "hour" },
+      requireVerification: false,
+    },
+    pathPolicies: [
+      { path: "/admin/*", allow: false },
+      { path: "/api/**", allow: true, requireVerification: true },
+    ],
+  }),
+);
+
+const result = enforce(policy, {
+  path: "/api/data",
+  agentName: "MyBot/1.0",
+  agentIntent: "read",
+  agentId: "did:web:mybot.example.com",
+  agentSignature: "eyJhbGci...",
+});
+
+console.log(result.status); // "allowed"
+console.log(result.httpStatus); // 200
+console.log(result.headers); // APoP response headers
+```
+
+### Parameters
+
+| Parameter | Type             | Required | Description              |
+| --------- | ---------------- | -------- | ------------------------ |
+| `policy`  | `AgentPolicy`    | Yes      | Parsed policy object     |
+| `context` | `RequestContext` | Yes      | Incoming request context |
+
+### `RequestContext`
+
+```ts
+interface RequestContext {
+  path: string; // URL path being requested
+  agentName?: string; // Agent-Name header
+  agentIntent?: string; // Agent-Intent header
+  agentId?: string; // Agent-Id header
+  agentSignature?: string; // Agent-Signature header
+  agentVC?: string; // Agent-VC header
+  agentCard?: string; // Agent-Card header
+  agentKeyId?: string; // Agent-Key-Id header
+}
+```
+
+### Returns: `EnforcementResult`
+
+```ts
+interface EnforcementResult {
+  status: EnforcementStatus;
+  httpStatus: number;
+  headers: AgentResponseHeaders;
+  body?: Record<string, unknown>;
+}
+
+type EnforcementStatus =
+  | "allowed" // 200 — request is permitted
+  | "denied" // 430 — action not allowed
+  | "verification-required" // 439 — must verify identity
+  | "rate-limited"; // 438 — rate limit exceeded
+```
+
+## Enforcement Order
+
+The enforcer evaluates rules in this order:
+
+1. **Match path** — Find the first matching `pathPolicy` or use `defaultPolicy`
+2. **Check `agentDenylist`** — If agent is on the deny list → `430`
+3. **Check `agentAllowlist`** — If allowlist exists and agent is not on it → `430`
+4. **Check `allow: false`** — If the matched rule denies access → `430`
+5. **Check `disallow` actions** — If the agent intent is in `disallow` → `430`
+6. **Check `requireVerification`** — If verification is required and not provided → `439`
+7. **Set rate limit headers** — Return `200` with rate limit headers
+
+## Status Codes
+
+| Code | Constant                                  | Status                  |
+| ---- | ----------------------------------------- | ----------------------- |
+| 200  | —                                         | `allowed`               |
+| 430  | `APOP_STATUS_CODES.ACTION_NOT_ALLOWED`    | `denied`                |
+| 438  | `APOP_STATUS_CODES.RATE_LIMITED`          | `rate-limited`          |
+| 439  | `APOP_STATUS_CODES.VERIFICATION_REQUIRED` | `verification-required` |
+
+## Response Headers
+
+The enforcer sets appropriate APoP response headers:
+
+| Header                        | Description                   |
+| ----------------------------- | ----------------------------- |
+| `Agent-Policy`                | URL to the policy file        |
+| `Agent-Policy-Version`        | Protocol version              |
+| `Agent-Policy-Status`         | Enforcement result status     |
+| `Agent-Policy-Actions`        | Allowed actions for this path |
+| `Agent-Policy-Rate-Limit`     | Rate limit quota              |
+| `Agent-Policy-Rate-Remaining` | Remaining requests in window  |
+| `Agent-Policy-Rate-Reset`     | Time until rate limit resets  |
+| `Agent-Policy-Verify`         | Required verification method  |
+
+## Examples
+
+### Denied Request
+
+```ts
+const result = enforce(policy, {
+  path: "/admin/settings",
+  agentName: "ScrapeBot/1.0",
+  agentIntent: "extract",
+});
+
+// result.status === "denied"
+// result.httpStatus === 430
+// result.body === { error: "Agent action not allowed", ... }
+```
+
+### Verification Required
+
+```ts
+const result = enforce(policy, {
+  path: "/api/data",
+  agentName: "MyBot/1.0",
+  agentIntent: "read",
+  // No agentId or agentSignature provided
+});
+
+// result.status === "verification-required"
+// result.httpStatus === 439
+```
+
+## Notes
+
+- Rate limiting is **advisory-only** — the SDK sets headers from config but does not track actual request counts. Use a dedicated rate limiter (Redis, in-memory) for production enforcement.
+- Signature verification is **presence-check only** — `requireVerification: true` checks that `Agent-Signature` or `Agent-VC` header exists, but does not perform cryptographic validation.

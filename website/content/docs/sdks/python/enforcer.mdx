@@ -1,0 +1,135 @@
+---
+title: Enforcer
+description: Enforce APoP policies against agent requests with the APoP Python SDK.
+---
+
+# Enforcer
+
+The enforcer module evaluates an incoming agent request against a parsed APoP policy and returns an enforcement decision.
+
+## Import
+
+```python
+from apop.enforcer import enforce
+from apop.types import RequestContext, EnforcementResult
+```
+
+## `enforce(policy, context)`
+
+Evaluate a request against the policy and return an enforcement result.
+
+```python
+from apop.parser import parse_policy
+from apop.enforcer import enforce
+from apop.types import RequestContext
+
+result = parse_policy('''{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "summarize"],
+    "disallow": ["extract"],
+    "rateLimit": {"requests": 100, "window": "hour"}
+  },
+  "pathPolicies": [
+    {"path": "/admin/*", "allow": false},
+    {"path": "/api/**", "allow": true, "requireVerification": true}
+  ]
+}''')
+
+decision = enforce(result.policy, RequestContext(
+    path="/api/data",
+    agent_name="MyBot/1.0",
+    agent_intent="read",
+    agent_id="did:web:mybot.example.com",
+    agent_signature="eyJhbGci...",
+))
+
+print(decision.status)       # "allowed"
+print(decision.http_status)  # 200
+print(decision.headers)      # {"Agent-Policy-Status": "allowed", ...}
+```
+
+### Parameters
+
+| Parameter | Type             | Required | Description              |
+| --------- | ---------------- | -------- | ------------------------ |
+| `policy`  | `AgentPolicy`    | Yes      | Parsed policy object     |
+| `context` | `RequestContext` | Yes      | Incoming request context |
+
+### `RequestContext`
+
+```python
+@dataclass
+class RequestContext:
+    path: str                    # URL path being requested
+    agent_name: str | None       # Agent-Name header
+    agent_intent: str | None     # Agent-Intent header
+    agent_id: str | None         # Agent-Id header
+    agent_signature: str | None  # Agent-Signature header
+    agent_vc: str | None         # Agent-VC header
+    agent_card: str | None       # Agent-Card header
+    agent_key_id: str | None     # Agent-Key-Id header
+```
+
+### Returns: `EnforcementResult`
+
+```python
+@dataclass
+class EnforcementResult:
+    status: str       # "allowed", "denied", "verification-required", "rate-limited"
+    http_status: int  # 200, 430, 438, or 439
+    headers: dict     # Response headers to set
+    body: dict | None # Error body (if denied)
+```
+
+## Enforcement Order
+
+1. **Match path** — Find the first matching `pathPolicy` or use `defaultPolicy`
+2. **Check `agentDenylist`** — If agent is denied → `430`
+3. **Check `agentAllowlist`** — If allowlist exists and agent is not on it → `430`
+4. **Check `allow: false`** — If the rule denies access → `430`
+5. **Check `disallow` actions** — If agent intent is disallowed → `430`
+6. **Check `requireVerification`** — If verification required and not provided → `439`
+7. **Set rate limit headers** — Return `200` with headers
+
+## Status Codes
+
+| Code | Status                  | Meaning                                  |
+| ---- | ----------------------- | ---------------------------------------- |
+| 200  | `allowed`               | Request is permitted                     |
+| 430  | `denied`                | Action not allowed by policy             |
+| 438  | `rate-limited`          | Rate limit exceeded                      |
+| 439  | `verification-required` | Agent must verify identity before access |
+
+## Examples
+
+### Denied Request
+
+```python
+decision = enforce(policy, RequestContext(
+    path="/admin/settings",
+    agent_name="ScrapeBot/1.0",
+    agent_intent="extract",
+))
+# decision.status == "denied"
+# decision.http_status == 430
+```
+
+### Verification Required
+
+```python
+decision = enforce(policy, RequestContext(
+    path="/api/data",
+    agent_name="MyBot/1.0",
+    agent_intent="read",
+    # No agent_id or agent_signature
+))
+# decision.status == "verification-required"
+# decision.http_status == 439
+```
+
+## Notes
+
+- Rate limiting is **advisory-only** — headers are set from config but actual request counting is not implemented.
+- Signature verification is **presence-check only** — `requireVerification=True` checks that headers exist, but does not perform cryptographic validation.

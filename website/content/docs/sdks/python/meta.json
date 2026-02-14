@@ -1,0 +1,12 @@
+{
+  "title": "Python",
+  "pages": [
+    "installation",
+    "parser",
+    "enforcer",
+    "discovery",
+    "middleware-fastapi",
+    "middleware-flask",
+    "middleware-django"
+  ]
+}

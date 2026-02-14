@@ -1,0 +1,133 @@
+---
+title: Parser
+description: Parse and validate agent-policy.json files with the APoP Python SDK.
+---
+
+# Parser
+
+The parser module validates `agent-policy.json` files against the APoP JSON Schema (Draft 2020-12).
+
+## Import
+
+```python
+from apop.parser import parse_policy, validate_policy, parse_policy_file, get_schema
+```
+
+## `parse_policy(json_str)`
+
+Parse a JSON string into a validated `AgentPolicy` object.
+
+```python
+from apop.parser import parse_policy
+
+json_str = '''{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "summarize"],
+    "rateLimit": {"requests": 100, "window": "hour"}
+  }
+}'''
+
+result = parse_policy(json_str)
+
+if result.valid:
+    print(result.policy.version)  # "1.0"
+    print(result.policy.default_policy.allow)  # True
+else:
+    for error in result.errors:
+        print(f"{error.path}: {error.message}")
+```
+
+### Parameters
+
+| Parameter  | Type  | Required | Description              |
+| ---------- | ----- | -------- | ------------------------ |
+| `json_str` | `str` | Yes      | Raw JSON string to parse |
+
+### Returns: `ParseResult`
+
+```python
+@dataclass
+class ParseResult:
+    valid: bool
+    policy: AgentPolicy | None
+    errors: list[ValidationError]
+
+@dataclass
+class ValidationError:
+    path: str
+    message: str
+```
+
+## `validate_policy(data)`
+
+Validate an already-parsed dictionary against the schema.
+
+```python
+from apop.parser import validate_policy
+
+data = {
+    "version": "1.0",
+    "defaultPolicy": {"allow": True}
+}
+
+result = validate_policy(data)
+
+if result.valid:
+    print("Policy is valid!")
+```
+
+### Parameters
+
+| Parameter | Type  | Required | Description            |
+| --------- | ----- | -------- | ---------------------- |
+| `data`    | `Any` | Yes      | Dictionary to validate |
+
+## `parse_policy_file(path)`
+
+Read and parse a policy file from disk.
+
+```python
+from apop.parser import parse_policy_file
+
+result = parse_policy_file("agent-policy.json")
+
+if result.valid:
+    print(f"Policy version: {result.policy.version}")
+    print(f"Default allow: {result.policy.default_policy.allow}")
+else:
+    print("Invalid policy:", result.errors)
+```
+
+### Parameters
+
+| Parameter | Type  | Required | Description                  |
+| --------- | ----- | -------- | ---------------------------- |
+| `path`    | `str` | Yes      | Path to the JSON policy file |
+
+## `get_schema()`
+
+Returns the built-in APoP JSON Schema as a dictionary.
+
+```python
+from apop.parser import get_schema
+
+schema = get_schema()
+print(schema["title"])  # "Agent Policy Protocol (APoP) v1.0 Manifest"
+```
+
+## Error Handling
+
+```python
+result = parse_policy('{"version": "2.0"}')
+# result.valid == False
+# result.errors[0].path == "/version"
+# result.errors[0].message == "must be equal to one of the allowed values"
+```
+
+## Notes
+
+- The schema is bundled with the SDK — no network requests during validation.
+- `parse_policy` and `validate_policy` are synchronous. `parse_policy_file` is also synchronous (file I/O).
+- Invalid JSON strings return an error with `path=""` and a parse error message.

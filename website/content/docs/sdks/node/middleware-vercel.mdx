@@ -1,0 +1,121 @@
+---
+title: Vercel Middleware
+description: Integrate APoP enforcement into Vercel serverless and edge functions with the @apop/node SDK.
+---
+
+# Vercel Middleware
+
+The SDK provides two Vercel integrations: **Serverless Functions** and **Edge Middleware**.
+
+## Import
+
+```ts
+import { createVercelHandler } from "@apop/node/middleware/vercel";
+import { createVercelEdgeMiddleware } from "@apop/node/middleware/vercel";
+```
+
+## Vercel Serverless Functions
+
+Use `createVercelHandler` to protect individual serverless API routes.
+
+```ts title="api/data.ts"
+import { createVercelHandler } from "@apop/node/middleware/vercel";
+
+const policy = {
+  version: "1.0",
+  defaultPolicy: {
+    allow: true,
+    actions: ["read", "api_call"],
+    rateLimit: { requests: 100, window: "hour" },
+  },
+};
+
+const apop = createVercelHandler({ policy });
+
+export default function handler(req, res) {
+  if (apop(req, res)) return; // Blocked by policy
+  res.json({ data: "Protected by APoP" });
+}
+```
+
+### `createVercelHandler(options)`
+
+| Parameter               | Type          | Required | Default | Description                             |
+| ----------------------- | ------------- | -------- | ------- | --------------------------------------- |
+| `options.policy`        | `AgentPolicy` | Yes      | —       | The APoP policy to enforce              |
+| `options.skipNonAgents` | `boolean`     | No       | `true`  | Skip enforcement for non-agent requests |
+
+Returns a function `(req, res) => boolean`:
+
+- Returns `true` if the request was blocked (response already sent)
+- Returns `false` if the request is allowed
+
+## Vercel Edge Middleware
+
+Use `createVercelEdgeMiddleware` for edge-level enforcement across all routes.
+
+```ts title="middleware.ts"
+import { createVercelEdgeMiddleware } from "@apop/node/middleware/vercel";
+
+const policy = {
+  version: "1.0",
+  policyUrl: "https://example.com/.well-known/agent-policy.json",
+  defaultPolicy: {
+    allow: true,
+    actions: ["read", "render"],
+    rateLimit: { requests: 200, window: "hour" },
+  },
+  pathPolicies: [
+    { path: "/admin/*", allow: false },
+    { path: "/api/**", allow: true, requireVerification: true },
+  ],
+};
+
+const apop = createVercelEdgeMiddleware({ policy });
+
+export default function middleware(request) {
+  const blocked = apop(request);
+  if (blocked) return blocked; // Returns a Response with error status
+  return new Response("OK");
+}
+```
+
+### `createVercelEdgeMiddleware(options)`
+
+| Parameter               | Type          | Required | Default | Description                             |
+| ----------------------- | ------------- | -------- | ------- | --------------------------------------- |
+| `options.policy`        | `AgentPolicy` | Yes      | —       | The APoP policy to enforce              |
+| `options.skipNonAgents` | `boolean`     | No       | `true`  | Skip enforcement for non-agent requests |
+
+Returns a function `(request) => Response | null`:
+
+- Returns `null` if the request is allowed
+- Returns a `Response` with the appropriate status code if blocked
+
+## Serving the Policy on Vercel
+
+Add the policy to your `public` directory:
+
+```bash
+mkdir -p public/.well-known
+cp agent-policy.json public/.well-known/agent-policy.json
+```
+
+Or use a Vercel rewrite in `vercel.json`:
+
+```json title="vercel.json"
+{
+  "rewrites": [
+    {
+      "source": "/.well-known/agent-policy.json",
+      "destination": "/api/agent-policy"
+    }
+  ]
+}
+```
+
+## Notes
+
+- Edge middleware runs before your serverless functions — ideal for global enforcement.
+- Serverless handler is better for per-route protection.
+- Both approaches can be combined: edge middleware for global rules, serverless handler for route-specific logic.

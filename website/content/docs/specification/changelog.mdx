@@ -1,0 +1,136 @@
+---
+title: Changelog
+description: Version history and changes to the Agent Policy Protocol specification.
+---
+
+# Changelog
+
+All notable changes to the APoP specification are documented here.
+
+## v1.0 (Current)
+
+**Release Date:** June 2025
+
+The first stable release of the Agent Policy Protocol.
+
+### Core Specification
+
+- **JSON-based policy manifest** — `agent-policy.json` as the canonical policy format
+- **Well-known URI** — `/.well-known/agent-policy.json` for automatic discovery
+- **Semantic versioning** — `version` field with values `"0.1"` or `"1.0"`
+
+### Policy Structure
+
+- **`defaultPolicy`** — Site-wide fallback rules (required)
+- **`pathPolicies`** — Ordered array of path-specific overrides with first-match semantics
+- **`policyUrl`** — Canonical URL where the policy is hosted
+
+### Action Types
+
+Ten standardized action types:
+
+| Action               | Description                     |
+| -------------------- | ------------------------------- |
+| `read`               | Read or view content            |
+| `index`              | Add content to a search index   |
+| `extract`            | Extract structured data         |
+| `summarize`          | Generate summaries              |
+| `render`             | Render pages (headless browser) |
+| `api_call`           | Call API endpoints              |
+| `form_submit`        | Submit forms                    |
+| `automated_purchase` | Make purchases                  |
+| `tool_invoke`        | Invoke tools or functions       |
+| `all`                | Wildcard for all actions        |
+
+### Access Control
+
+- **`allow` / `disallow`** — Boolean allow + explicit disallow list
+- **`agentAllowlist`** — Restrict path access to listed agents
+- **`agentDenylist`** — Block specific agents from a path
+- **`requireVerification`** — Require identity verification before access
+
+### Rate Limiting
+
+- **`rateLimit`** — Per-path rate limits with `requests` + `window` (minute/hour/day)
+
+### HTTP Status Codes
+
+- **`438 Policy Violation – Intent Not Allowed`** — The agent's declared intent is not permitted
+- **`439 Policy Violation – Agent Not Allowed`** — The agent's identity is not allowed
+
+### HTTP Headers
+
+- **`X-Agent-Id`** — Agent identifier (DID URI, email-style, or name)
+- **`X-Agent-Intent`** — Declared action intent
+- **`X-Agent-Policy`** — URL to the site's agent policy
+- **`X-Policy-Version`** — Protocol version in use
+
+### Discovery
+
+Four discovery methods (checked in order):
+
+1. **Well-known URI** — `GET /.well-known/agent-policy.json`
+2. **HTTP headers** — `X-Agent-Policy` response header
+3. **HTML meta tag** — `<meta name="agent-policy" content="...">`
+4. **DNS TXT record** — `_agentpolicy.example.com` TXT record
+
+### Verification
+
+- **`pkix`** — PKI certificate verification
+- **`did`** — Decentralized Identifier resolution
+- **`verifiable-credential`** — W3C Verifiable Credentials with trusted issuers
+- **`partner-token`** — Pre-shared API token verification
+- **`trustedIssuers`** — List of trusted VC issuer DIDs
+- **`verificationEndpoint`** — URL for agent key exchange or token request
+
+### Contact
+
+- **`email`** — Contact email for policy questions
+- **`policyUrl`** — Human-readable policy page
+- **`abuseUrl`** — URL for reporting agent abuse
+
+### Metadata
+
+- **`description`** — Brief policy description
+- **`owner`** — Organization or individual name
+- **`maintainer`** — Policy maintainer contact
+- **`lastModified`** — ISO 8601 timestamp
+- **`license`** — License URL or SPDX identifier
+
+### Interoperability
+
+Cross-protocol declarations:
+
+- **`a2aAgentCard`** — Link to Google A2A Agent Card
+- **`mcpServerUrl`** — Link to MCP server endpoint
+- **`webmcpEnabled`** — WebMCP support via `navigator.modelContext`
+- **`ucpCapabilities`** — Link to UCP capability profile
+- **`apaaiEndpoint`** — Link to APAAI accountability endpoint
+
+### JSON Schema
+
+- Published at `https://agentpolicy.org/schema/v1/agent-policy.schema.json`
+- Uses JSON Schema Draft 2020-12
+- Strict validation with `additionalProperties: false`
+
+---
+
+## v0.1 (Draft)
+
+**Release Date:** January 2025
+
+The initial draft of the Agent Policy Protocol.
+
+### Changes from v0.1 to v1.0
+
+| Area            | v0.1                   | v1.0                                          |
+| --------------- | ---------------------- | --------------------------------------------- |
+| Status codes    | `431` / `432`          | `438` / `439`                                 |
+| Field naming    | `allowedActions`       | `actions` + `allow` boolean                   |
+| Verification    | Basic DID only         | DID, VC, PKIX, partner-token                  |
+| Discovery       | Well-known URI only    | 4 methods (well-known, header, meta tag, DNS) |
+| Interop         | None                   | A2A, MCP, WebMCP, UCP, APAAI                  |
+| Policy rule     | `allowedActions` array | `allow` boolean + `actions` + `disallow`      |
+| JSON Schema     | Informal               | Formal Draft 2020-12                          |
+| Agent filtering | None                   | `agentAllowlist` / `agentDenylist`            |
+| Trusted issuers | None                   | `trustedIssuers` array                        |

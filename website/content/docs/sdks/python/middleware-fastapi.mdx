@@ -1,0 +1,114 @@
+---
+title: FastAPI Middleware
+description: Integrate APoP enforcement into FastAPI applications with the APoP Python SDK.
+---
+
+# FastAPI Middleware
+
+Drop-in APoP enforcement for FastAPI and Starlette applications.
+
+## Install
+
+```bash
+pip install apop[fastapi]
+```
+
+## Quick Start
+
+```python
+from fastapi import FastAPI
+from apop.parser import parse_policy_file
+from apop.middleware.fastapi import create_fastapi_middleware, create_discovery_route
+from apop.types import MiddlewareOptions
+
+app = FastAPI()
+
+# Load and validate policy
+result = parse_policy_file("agent-policy.json")
+policy = result.policy
+
+# Add enforcement middleware
+app.add_middleware(
+    create_fastapi_middleware(MiddlewareOptions(policy=policy))
+)
+
+# Serve policy at well-known URL
+app.get("/.well-known/agent-policy.json")(create_discovery_route(policy))
+
+@app.get("/")
+async def root():
+    return {"message": "Protected by APoP"}
+
+@app.get("/api/data")
+async def get_data():
+    return {"data": "Sensitive information"}
+```
+
+## `create_fastapi_middleware(options)`
+
+Creates a Starlette middleware class for APoP enforcement.
+
+### Parameters
+
+| Parameter                 | Type          | Required | Default | Description                             |
+| ------------------------- | ------------- | -------- | ------- | --------------------------------------- |
+| `options.policy`          | `AgentPolicy` | Yes      | —       | The APoP policy to enforce              |
+| `options.skip_non_agents` | `bool`        | No       | `True`  | Skip enforcement for non-agent requests |
+
+## `create_discovery_route(policy)`
+
+Creates a route handler that serves the policy as JSON.
+
+```python
+app.get("/.well-known/agent-policy.json")(create_discovery_route(policy))
+```
+
+## Inline Policy
+
+```python
+from apop.parser import parse_policy
+from apop.middleware.fastapi import create_fastapi_middleware
+from apop.types import MiddlewareOptions
+
+policy_json = '''{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "summarize"],
+    "rateLimit": {"requests": 100, "window": "hour"}
+  },
+  "pathPolicies": [
+    {"path": "/admin/*", "allow": false}
+  ]
+}'''
+
+result = parse_policy(policy_json)
+
+app.add_middleware(
+    create_fastapi_middleware(MiddlewareOptions(policy=result.policy))
+)
+```
+
+## Testing
+
+```bash
+# Allowed request
+curl -H "Agent-Name: MyBot/1.0" \
+     -H "Agent-Intent: read" \
+     http://localhost:8000/
+
+# Denied request
+curl -H "Agent-Name: ScrapeBot/1.0" \
+     -H "Agent-Intent: extract" \
+     http://localhost:8000/admin/settings
+# → 430
+
+# Fetch the policy
+curl http://localhost:8000/.well-known/agent-policy.json
+```
+
+## Notes
+
+- The middleware runs on every request but short-circuits for non-agent traffic when `skip_non_agents=True`.
+- Compatible with both FastAPI and raw Starlette applications.
+- Combine with `slowapi` or Redis for actual rate limiting enforcement.

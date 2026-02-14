@@ -1,0 +1,108 @@
+---
+title: Flask Middleware
+description: Integrate APoP enforcement into Flask applications with the APoP Python SDK.
+---
+
+# Flask Middleware
+
+Drop-in APoP enforcement for Flask applications.
+
+## Install
+
+```bash
+pip install apop[flask]
+```
+
+## Quick Start
+
+```python
+from flask import Flask
+from apop.parser import parse_policy_file
+from apop.middleware.flask import create_flask_middleware, create_flask_discovery
+from apop.types import MiddlewareOptions
+
+app = Flask(__name__)
+
+# Load and validate policy
+result = parse_policy_file("agent-policy.json")
+policy = result.policy
+
+# Add enforcement middleware
+create_flask_middleware(app, MiddlewareOptions(policy=policy))
+
+# Serve policy at well-known URL
+create_flask_discovery(app, policy)
+
+@app.route("/")
+def index():
+    return {"message": "Protected by APoP"}
+
+@app.route("/api/data")
+def get_data():
+    return {"data": "Sensitive information"}
+```
+
+## `create_flask_middleware(app, options)`
+
+Registers a `before_request` handler that enforces the APoP policy.
+
+### Parameters
+
+| Parameter                 | Type          | Required | Default | Description                             |
+| ------------------------- | ------------- | -------- | ------- | --------------------------------------- |
+| `app`                     | `Flask`       | Yes      | —       | Flask application instance              |
+| `options.policy`          | `AgentPolicy` | Yes      | —       | The APoP policy to enforce              |
+| `options.skip_non_agents` | `bool`        | No       | `True`  | Skip enforcement for non-agent requests |
+
+## `create_flask_discovery(app, policy)`
+
+Registers a route at `/.well-known/agent-policy.json` that serves the policy.
+
+```python
+create_flask_discovery(app, policy)
+```
+
+## Inline Policy
+
+```python
+from apop.parser import parse_policy
+from apop.middleware.flask import create_flask_middleware
+from apop.types import MiddlewareOptions
+
+policy_json = '''{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read"],
+    "disallow": ["extract"],
+    "rateLimit": {"requests": 60, "window": "hour"}
+  }
+}'''
+
+result = parse_policy(policy_json)
+create_flask_middleware(app, MiddlewareOptions(policy=result.policy))
+```
+
+## Testing
+
+```bash
+# Allowed request
+curl -H "Agent-Name: MyBot/1.0" \
+     -H "Agent-Intent: read" \
+     http://localhost:5000/
+
+# Denied request
+curl -H "Agent-Name: ScrapeBot/1.0" \
+     -H "Agent-Intent: extract" \
+     http://localhost:5000/
+# → 430
+
+# Fetch the policy
+curl http://localhost:5000/.well-known/agent-policy.json
+```
+
+## Notes
+
+- Uses Flask's `before_request` hook — runs before every request handler.
+- Non-agent requests pass through when `skip_non_agents=True`.
+- Combine with `Flask-Limiter` for actual rate limiting enforcement.

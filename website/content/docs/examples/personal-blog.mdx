@@ -1,0 +1,94 @@
+---
+title: Personal Blog
+description: APoP policy template for personal blogs — simple, permissive, no verification needed.
+---
+
+# Personal Blog
+
+A simple, lightweight policy for personal blogs that want to allow AI agents to read and summarize content.
+
+## Use Case
+
+- Allow reading, indexing, and summarizing of all blog posts
+- Block data extraction and sensitive actions
+- No verification required — keep it simple
+- Block admin paths
+
+## Full Policy
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://myblog.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "disallow": [
+      "extract",
+      "api_call",
+      "form_submit",
+      "automated_purchase",
+      "tool_invoke"
+    ],
+    "rateLimit": {
+      "requests": 100,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/posts/**",
+      "allow": true,
+      "actions": ["read", "index", "summarize"],
+      "requireVerification": false
+    },
+    {
+      "path": "/feed/*",
+      "allow": true,
+      "actions": ["read", "index"],
+      "requireVerification": false
+    },
+    {
+      "path": "/admin/**",
+      "allow": false
+    },
+    {
+      "path": "/wp-admin/**",
+      "allow": false
+    }
+  ],
+  "contact": {
+    "email": "hello@myblog.example.com"
+  },
+  "metadata": {
+    "description": "Simple personal blog: allow reading, indexing, and summarizing all posts. No verification needed. Block extraction and admin paths.",
+    "owner": "Jane Doe",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "CC-BY-4.0"
+  }
+}
+```
+
+## How It Works
+
+### Simple and Permissive
+
+The default policy allows the three most common agent actions — read, index, and summarize. This lets AI assistants cite your blog posts when users ask questions.
+
+### Extraction Block
+
+The `disallow` list blocks extraction, API calls, form submission, automated purchases, and tool invocations. This prevents scraping while allowing fair use.
+
+### No Verification
+
+Personal blogs rarely need agent verification. Keeping `requireVerification: false` means all well-behaved agents can interact immediately.
+
+### CC-BY License
+
+The `CC-BY-4.0` license in metadata signals that content can be freely used with attribution — a common choice for personal blogs.
+
+### When to Use This Template
+
+Ideal for personal blogs, hobby sites, portfolios, and any small site where you want AI agents to discover and share your content while preventing abusive scraping.

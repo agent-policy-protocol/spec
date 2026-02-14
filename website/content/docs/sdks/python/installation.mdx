@@ -1,0 +1,73 @@
+---
+title: Installation
+description: Install and set up the APoP Python SDK.
+---
+
+# Installation
+
+## Requirements
+
+- **Python 3.10+**
+
+## Install
+
+```bash
+pip install apop
+```
+
+## Framework Extras
+
+Install with extras for your web framework:
+
+```bash
+# FastAPI / Starlette
+pip install apop[fastapi]
+
+# Flask
+pip install apop[flask]
+
+# Django
+pip install apop[django]
+
+# All frameworks
+pip install apop[all]
+```
+
+## Development Install
+
+For contributing to the SDK:
+
+```bash
+pip install apop[dev]
+```
+
+This includes test dependencies (`pytest`, `mypy`, `ruff`).
+
+## Verify Installation
+
+```python
+from apop.parser import parse_policy
+from apop.enforcer import enforce
+
+print("apop installed successfully!")
+```
+
+## What's Included
+
+| Module                    | Description                                                    |
+| ------------------------- | -------------------------------------------------------------- |
+| `apop.parser`             | Parse and validate `agent-policy.json` against the JSON Schema |
+| `apop.enforcer`           | Evaluate agent requests against your parsed policy             |
+| `apop.discovery`          | Discover policies using all 4 discovery methods                |
+| `apop.headers`            | Parse and generate APoP HTTP headers                           |
+| `apop.matcher`            | Glob-style path matching                                       |
+| `apop.types`              | Dataclass types for all APoP entities                          |
+| `apop.middleware.fastapi` | FastAPI / Starlette middleware                                 |
+| `apop.middleware.flask`   | Flask middleware                                               |
+| `apop.middleware.django`  | Django middleware                                              |
+
+## Next Steps
+
+- [Parser](/docs/sdks/python/parser) — Parse and validate policies
+- [Enforcer](/docs/sdks/python/enforcer) — Enforce policies on requests
+- [FastAPI Middleware](/docs/sdks/python/middleware-fastapi) — Integrate with FastAPI

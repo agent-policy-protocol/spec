@@ -1,0 +1,130 @@
+---
+title: WordPress Default
+description: APoP policy template for WordPress sites — sensible defaults for the most popular CMS.
+---
+
+# WordPress Default
+
+A drop-in policy template for WordPress sites with sensible defaults covering common WordPress paths, REST API, and admin areas.
+
+## Use Case
+
+- Allow reading and indexing of public content
+- Block admin login, XML-RPC, and wp-admin
+- Allow REST API access with rate limits
+- Gate WooCommerce API behind verification
+- Support RSS feed indexing
+
+## Full Policy
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "disallow": ["extract", "form_submit", "automated_purchase", "tool_invoke"],
+    "rateLimit": {
+      "requests": 120,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/wp-content/uploads/**",
+      "allow": true,
+      "actions": ["read", "index"],
+      "requireVerification": false
+    },
+    {
+      "path": "/wp-admin/**",
+      "allow": false
+    },
+    {
+      "path": "/wp-login.php",
+      "allow": false
+    },
+    {
+      "path": "/wp-json/wp/v2/**",
+      "allow": true,
+      "actions": ["api_call", "read"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 300,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/wp-json/wc/v3/**",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 100,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/xmlrpc.php",
+      "allow": false
+    },
+    {
+      "path": "/feed/*",
+      "allow": true,
+      "actions": ["read", "index"],
+      "requireVerification": false
+    }
+  ],
+  "contact": {
+    "email": "admin@example.com"
+  },
+  "metadata": {
+    "description": "Sensible WordPress defaults: allow reading and indexing public content, block admin/login paths, allow REST API with rate limits, block XML-RPC.",
+    "owner": "WordPress Site Owner",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  }
+}
+```
+
+## How It Works
+
+### Public Content
+
+By default, agents can read, index, and summarize all public pages and posts. The 120 requests/hour rate limit prevents aggressive scraping.
+
+### WordPress Admin Protection
+
+Three critical WordPress paths are blocked:
+
+- `/wp-admin/**` — The admin dashboard
+- `/wp-login.php` — The login page
+- `/xmlrpc.php` — The XML-RPC endpoint (common attack vector)
+
+### REST API Access
+
+The WordPress REST API (`/wp-json/wp/v2/**`) is open with 300 requests/hour, enabling agents to access structured post and page data.
+
+### WooCommerce Protection
+
+The WooCommerce API (`/wp-json/wc/v3/**`) requires verification and has stricter limits (100/hour), protecting e-commerce operations like order data.
+
+### Media Files
+
+Uploads at `/wp-content/uploads/**` are readable and indexable without verification.
+
+### Deployment
+
+1. Copy the JSON above to `agent-policy.json`
+2. Upload to your WordPress root as `.well-known/agent-policy.json`
+3. Alternatively, use an `.htaccess` rewrite:
+
+```apache
+RewriteRule ^\.well-known/agent-policy\.json$ /agent-policy.json [L]
+```
+
+### When to Use This Template
+
+Use this as a starting point for any WordPress site. Customize the `pathPolicies` to match your specific plugin paths and requirements.

@@ -1,0 +1,130 @@
+---
+title: WordPress Integration
+description: Add APoP to your WordPress site — protect your content from AI agents.
+---
+
+# WordPress Integration
+
+Add APoP protection to any WordPress site in minutes — no plugin required.
+
+## Quick Setup (Manual)
+
+### Step 1: Create the Policy File
+
+Create an `agent-policy.json` file using the [WordPress Default template](/docs/examples/wordpress):
+
+```json title="agent-policy.json"
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "disallow": ["extract", "form_submit", "automated_purchase", "tool_invoke"],
+    "rateLimit": { "requests": 120, "window": "hour" },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    { "path": "/wp-admin/**", "allow": false },
+    { "path": "/wp-login.php", "allow": false },
+    { "path": "/xmlrpc.php", "allow": false },
+    {
+      "path": "/wp-json/wp/v2/**",
+      "allow": true,
+      "actions": ["api_call", "read"],
+      "rateLimit": { "requests": 300, "window": "hour" }
+    }
+  ]
+}
+```
+
+### Step 2: Upload to Your Server
+
+Upload the file to `.well-known/agent-policy.json` in your WordPress root:
+
+```bash
+# Via SSH
+mkdir -p /var/www/html/.well-known
+cp agent-policy.json /var/www/html/.well-known/agent-policy.json
+```
+
+Or via FTP: navigate to your WordPress root, create a `.well-known` folder, and upload the file.
+
+### Step 3: Configure URL Rewriting
+
+#### Apache (.htaccess)
+
+Add to your `.htaccess` file:
+
+```apache
+# Serve agent-policy.json
+RewriteRule ^\.well-known/agent-policy\.json$ /.well-known/agent-policy.json [L]
+```
+
+#### Nginx
+
+Add to your server block:
+
+```nginx
+location = /.well-known/agent-policy.json {
+    root /var/www/html;
+    default_type application/json;
+    add_header Cache-Control "public, max-age=3600";
+    add_header Agent-Policy "https://yoursite.com/.well-known/agent-policy.json";
+}
+```
+
+### Step 4: Verify
+
+```bash
+curl https://yoursite.com/.well-known/agent-policy.json
+```
+
+## Adding HTTP Headers
+
+Advertise the policy via HTTP headers on every response.
+
+### Apache (.htaccess)
+
+```apache
+<IfModule mod_headers.c>
+  Header set Agent-Policy "https://yoursite.com/.well-known/agent-policy.json"
+</IfModule>
+```
+
+### Nginx
+
+```nginx
+add_header Agent-Policy "https://yoursite.com/.well-known/agent-policy.json" always;
+```
+
+### WordPress (functions.php)
+
+```php title="functions.php"
+add_action('send_headers', function() {
+    header('Agent-Policy: https://yoursite.com/.well-known/agent-policy.json');
+});
+```
+
+## HTML Meta Tag (Alternative Discovery)
+
+Add to your theme's `header.php` or via a plugin:
+
+```php
+add_action('wp_head', function() {
+    echo '<meta name="agent-policy" content="https://yoursite.com/.well-known/agent-policy.json" />';
+});
+```
+
+## Customization Tips
+
+- **WooCommerce**: Add `requireVerification: true` to `/wp-json/wc/v3/**` paths
+- **bbPress/BuddyPress**: Block `/forums/*/reply` and `/members/**` from agents
+- **Membership plugins**: Block `/members-only/**` with `allow: false`
+- **Contact Form 7**: Block `/wp-json/contact-form-7/**` with `allow: false`
+
+## Notes
+
+- No WordPress plugin is required — the policy is a static JSON file.
+- The policy works alongside `robots.txt`, providing more granular control.
+- A dedicated WordPress plugin for managing APoP policies is planned for a future release.

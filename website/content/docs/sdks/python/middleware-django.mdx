@@ -1,0 +1,123 @@
+---
+title: Django Middleware
+description: Integrate APoP enforcement into Django applications with the APoP Python SDK.
+---
+
+# Django Middleware
+
+APoP enforcement middleware for Django applications.
+
+## Install
+
+```bash
+pip install apop[django]
+```
+
+## Quick Start
+
+### 1. Add the middleware to your Django settings
+
+```python title="settings.py"
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    # ... other middleware ...
+    "apop.middleware.django.APoPMiddleware",
+]
+
+# Path to your agent-policy.json file
+APOP_POLICY_FILE = BASE_DIR / "agent-policy.json"
+```
+
+### 2. Create your policy file
+
+```json title="agent-policy.json"
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "disallow": ["extract", "automated_purchase"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  },
+  "pathPolicies": [
+    { "path": "/admin/*", "allow": false },
+    { "path": "/api/**", "allow": true, "requireVerification": true }
+  ]
+}
+```
+
+### 3. Add a discovery URL (optional)
+
+```python title="urls.py"
+from django.urls import path
+from apop.middleware.django import agent_policy_view
+
+urlpatterns = [
+    # ...
+    path(".well-known/agent-policy.json", agent_policy_view),
+]
+```
+
+## Configuration
+
+| Setting                | Type         | Default | Description                             |
+| ---------------------- | ------------ | ------- | --------------------------------------- |
+| `APOP_POLICY_FILE`     | `Path / str` | —       | Path to the policy JSON file            |
+| `APOP_SKIP_NON_AGENTS` | `bool`       | `True`  | Skip enforcement for non-agent requests |
+
+## How It Works
+
+1. The middleware loads the policy file on startup from `APOP_POLICY_FILE`
+2. On each request, it checks for `Agent-Name` header
+3. If present (or `APOP_SKIP_NON_AGENTS=False`), it evaluates the request against the policy
+4. If denied, returns the appropriate HTTP response (430, 438, or 439)
+5. If allowed, adds APoP response headers and continues to the view
+
+## Serving the Policy with Django
+
+### Static File Approach
+
+Place `agent-policy.json` in your static files and configure a URL:
+
+```python title="urls.py"
+from django.views.static import serve
+from django.conf import settings
+
+urlpatterns = [
+    path(".well-known/agent-policy.json",
+         serve,
+         {"document_root": settings.BASE_DIR, "path": "agent-policy.json"}),
+]
+```
+
+### View-Based Approach
+
+```python title="views.py"
+from django.http import JsonResponse
+from apop.parser import parse_policy_file
+
+def agent_policy_view(request):
+    result = parse_policy_file("agent-policy.json")
+    return JsonResponse(result.policy.to_dict() if result.valid else {})
+```
+
+## Testing
+
+```bash
+# Allowed request
+curl -H "Agent-Name: MyBot/1.0" \
+     -H "Agent-Intent: read" \
+     http://localhost:8000/
+
+# Denied request
+curl -H "Agent-Name: MyBot/1.0" \
+     -H "Agent-Intent: read" \
+     http://localhost:8000/admin/settings
+# → 430
+```
+
+## Notes
+
+- The middleware loads the policy once on startup for performance.
+- Restart the server to pick up policy file changes.
+- Combine with Django REST Framework throttling for actual rate limiting.

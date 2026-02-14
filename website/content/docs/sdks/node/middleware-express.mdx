@@ -1,0 +1,155 @@
+---
+title: Express Middleware
+description: Integrate APoP enforcement into Express.js with the @apop/node SDK.
+---
+
+# Express Middleware
+
+The Express middleware provides drop-in APoP enforcement for Express.js applications.
+
+## Import
+
+```ts
+import { createExpressMiddleware, createDiscoveryEndpoint } from "@apop/node";
+```
+
+## Quick Start
+
+```ts
+import express from "express";
+import { createExpressMiddleware, createDiscoveryEndpoint } from "@apop/node";
+
+const policy = {
+  version: "1.0",
+  policyUrl: "https://example.com/.well-known/agent-policy.json",
+  defaultPolicy: {
+    allow: true,
+    actions: ["read", "render"],
+    rateLimit: { requests: 100, window: "hour" },
+    requireVerification: false,
+  },
+  pathPolicies: [
+    { path: "/admin/*", allow: false },
+    { path: "/api/**", allow: true, requireVerification: true },
+  ],
+  verification: { method: "did" },
+};
+
+const app = express();
+
+// Enforce APoP policy on all routes
+app.use(createExpressMiddleware({ policy }));
+
+// Serve the policy at the well-known URI
+app.get("/.well-known/agent-policy.json", createDiscoveryEndpoint(policy));
+
+app.get("/", (req, res) => res.send("Hello!"));
+app.listen(3000);
+```
+
+## `createExpressMiddleware(options)`
+
+Creates an Express middleware function that enforces the APoP policy on all incoming requests.
+
+### Parameters
+
+| Parameter               | Type          | Required | Default | Description                             |
+| ----------------------- | ------------- | -------- | ------- | --------------------------------------- |
+| `options.policy`        | `AgentPolicy` | Yes      | —       | The APoP policy to enforce              |
+| `options.skipNonAgents` | `boolean`     | No       | `true`  | Skip enforcement for non-agent requests |
+
+### Behavior
+
+1. Parses APoP headers from the incoming request (`Agent-Name`, `Agent-Intent`, etc.)
+2. If `skipNonAgents` is true and no `Agent-Name` header is present, the request passes through
+3. Evaluates the request against the policy using the enforcer
+4. If allowed, adds APoP response headers and calls `next()`
+5. If denied, returns the appropriate HTTP status code (430, 438, or 439) with error body
+
+### Configuration Options
+
+```ts
+// Skip enforcement for non-agent requests (default: true)
+app.use(
+  createExpressMiddleware({
+    policy,
+    skipNonAgents: true,
+  }),
+);
+
+// Enforce for ALL requests, including regular browsers
+app.use(
+  createExpressMiddleware({
+    policy,
+    skipNonAgents: false,
+  }),
+);
+```
+
+## `createDiscoveryEndpoint(policy)`
+
+Creates an Express route handler that serves the policy as JSON at the well-known URI.
+
+```ts
+app.get("/.well-known/agent-policy.json", createDiscoveryEndpoint(policy));
+```
+
+The handler responds with:
+
+- `Content-Type: application/json`
+- The full policy object as JSON
+- APoP discovery headers
+
+## Loading Policy from File
+
+```ts
+import {
+  parsePolicyFile,
+  createExpressMiddleware,
+  createDiscoveryEndpoint,
+} from "@apop/node";
+
+const result = await parsePolicyFile("./agent-policy.json");
+if (!result.valid) {
+  console.error("Invalid policy:", result.errors);
+  process.exit(1);
+}
+
+app.use(createExpressMiddleware({ policy: result.policy }));
+app.get(
+  "/.well-known/agent-policy.json",
+  createDiscoveryEndpoint(result.policy),
+);
+```
+
+## Testing
+
+Test your middleware with curl:
+
+```bash
+# Allowed request
+curl -H "Agent-Name: MyBot/1.0" \
+     -H "Agent-Intent: read" \
+     http://localhost:3000/
+
+# Denied request (admin path)
+curl -H "Agent-Name: MyBot/1.0" \
+     -H "Agent-Intent: read" \
+     http://localhost:3000/admin/settings
+# → 430 Agent Action Not Allowed
+
+# Verification required
+curl -H "Agent-Name: MyBot/1.0" \
+     -H "Agent-Intent: api_call" \
+     http://localhost:3000/api/data
+# → 439 Agent Verification Required
+
+# Fetch the policy
+curl http://localhost:3000/.well-known/agent-policy.json
+```
+
+## Notes
+
+- The middleware runs on every request but short-circuits quickly for non-agent traffic when `skipNonAgents` is true.
+- Response headers are always set for agent requests, even when allowed.
+- Combine with `express-rate-limit` or Redis for actual rate limiting enforcement.

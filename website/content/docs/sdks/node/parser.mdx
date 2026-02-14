@@ -1,0 +1,152 @@
+---
+title: Parser
+description: Parse and validate agent-policy.json files with the @apop/node SDK.
+---
+
+# Parser
+
+The parser module validates `agent-policy.json` files against the APoP JSON Schema (Draft 2020-12) using Ajv.
+
+## Import
+
+```ts
+import {
+  parsePolicy,
+  validatePolicy,
+  parsePolicyFile,
+  getSchema,
+} from "@apop/node";
+```
+
+## `parsePolicy(jsonString)`
+
+Parse a JSON string into a validated `AgentPolicy` object.
+
+```ts
+import { parsePolicy } from "@apop/node";
+
+const json = JSON.stringify({
+  version: "1.0",
+  defaultPolicy: {
+    allow: true,
+    actions: ["read", "summarize"],
+    rateLimit: { requests: 100, window: "hour" },
+  },
+});
+
+const result = parsePolicy(json);
+
+if (result.valid) {
+  console.log(result.policy); // AgentPolicy object
+  console.log(result.policy.version); // "1.0"
+} else {
+  console.error(result.errors); // ValidationError[]
+}
+```
+
+### Parameters
+
+| Parameter    | Type     | Required | Description              |
+| ------------ | -------- | -------- | ------------------------ |
+| `jsonString` | `string` | Yes      | Raw JSON string to parse |
+
+### Returns: `ParseResult`
+
+```ts
+interface ParseResult {
+  valid: boolean;
+  policy: AgentPolicy | null;
+  errors: ValidationError[];
+}
+
+interface ValidationError {
+  path: string;
+  message: string;
+}
+```
+
+## `validatePolicy(data)`
+
+Validate an already-parsed JavaScript object against the schema.
+
+```ts
+import { validatePolicy } from "@apop/node";
+
+const data = {
+  version: "1.0",
+  defaultPolicy: { allow: true },
+};
+
+const result = validatePolicy(data);
+
+if (result.valid) {
+  console.log("Policy is valid!");
+} else {
+  result.errors.forEach((err) => {
+    console.error(`${err.path}: ${err.message}`);
+  });
+}
+```
+
+### Parameters
+
+| Parameter | Type  | Required | Description                   |
+| --------- | ----- | -------- | ----------------------------- |
+| `data`    | `any` | Yes      | JavaScript object to validate |
+
+### Returns: `ParseResult`
+
+## `parsePolicyFile(filePath)`
+
+Read and parse a policy file from disk. Returns a Promise.
+
+```ts
+import { parsePolicyFile } from "@apop/node";
+
+const result = await parsePolicyFile("./agent-policy.json");
+
+if (result.valid) {
+  console.log(`Policy version: ${result.policy.version}`);
+  console.log(`Default allow: ${result.policy.defaultPolicy.allow}`);
+} else {
+  console.error("Invalid policy file:", result.errors);
+}
+```
+
+### Parameters
+
+| Parameter  | Type     | Required | Description                  |
+| ---------- | -------- | -------- | ---------------------------- |
+| `filePath` | `string` | Yes      | Path to the JSON policy file |
+
+### Returns: `Promise<ParseResult>`
+
+## `getSchema()`
+
+Returns the built-in APoP JSON Schema object.
+
+```ts
+import { getSchema } from "@apop/node";
+
+const schema = getSchema();
+console.log(schema.title); // "Agent Policy Protocol (APoP) v1.0 Manifest"
+```
+
+## Error Handling
+
+The parser returns structured errors with JSON pointer paths:
+
+```ts
+const result = parsePolicy('{"version": "2.0"}');
+// result.valid === false
+// result.errors[0] === {
+//   path: "/version",
+//   message: "must be equal to one of the allowed values"
+// }
+```
+
+## Notes
+
+- The schema is bundled with the SDK — no network requests are made during validation.
+- Both `parsePolicy` and `validatePolicy` are synchronous. Only `parsePolicyFile` is async (file I/O).
+- Invalid JSON strings will return an error with `path: ""` and a parse error message.

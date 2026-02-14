@@ -1,0 +1,92 @@
+---
+title: Open Data Portal
+description: APoP policy template for open data portals — maximum openness with high rate limits.
+---
+
+# Open Data Portal
+
+A fully permissive policy template for government or public open data portals that want to maximize agent access.
+
+## Use Case
+
+- Allow all agent actions on all public datasets
+- High rate limits for bulk data consumption
+- No verification required for any public data
+- Block only admin interfaces
+
+## Full Policy
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://data.example.gov/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "extract", "summarize", "render", "api_call"],
+    "rateLimit": {
+      "requests": 10000,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/datasets/**",
+      "allow": true,
+      "actions": ["read", "index", "extract", "summarize", "api_call"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 50000,
+        "window": "day"
+      }
+    },
+    {
+      "path": "/api/v1/**",
+      "allow": true,
+      "actions": ["api_call", "read", "extract"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 10000,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/admin/**",
+      "allow": false
+    }
+  ],
+  "contact": {
+    "email": "opendata@example.gov",
+    "policyUrl": "https://data.example.gov/terms"
+  },
+  "metadata": {
+    "description": "Open data portal: fully permissive access for all agents. High rate limits, no verification required. Intended for government open data initiatives.",
+    "owner": "Example Government Data Office",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "CC0-1.0"
+  }
+}
+```
+
+## How It Works
+
+### Maximum Openness
+
+The default policy allows 6 action types explicitly, with generous rate limits of 10,000 requests/hour. No verification is required.
+
+### Dataset Access
+
+The `/datasets/**` path provides even higher limits — 50,000 requests/day — to support bulk data extraction and analysis by AI agents.
+
+### Open API
+
+The API endpoint allows reading, extraction, and API calls without verification, enabling agents to programmatically access structured data.
+
+### CC0 License
+
+The `CC0-1.0` license in metadata signals that the data is in the public domain — agents can extract and reuse without restrictions.
+
+### When to Use This Template
+
+This template is ideal for government open data portals, academic research databases, public statistics offices, and any organization that wants to maximize the value of their data by making it freely accessible to AI agents.

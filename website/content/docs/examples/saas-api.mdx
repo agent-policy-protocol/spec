@@ -1,0 +1,127 @@
+---
+title: SaaS API Platform
+description: APoP policy template for API-first SaaS platforms — open docs, verified API access, blocked admin.
+---
+
+# SaaS API Platform
+
+A policy template for API-first SaaS platforms that need open documentation access while protecting API endpoints and blocking admin/billing areas.
+
+## Use Case
+
+- Allow agents to freely read API documentation
+- Gate API access to verified, allowlisted agents with high rate limits
+- Block admin and billing endpoints entirely
+- Support tool invocation for MCP-compatible agents
+
+## Full Policy
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://api.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read"],
+    "disallow": ["extract", "automated_purchase", "form_submit"],
+    "rateLimit": {
+      "requests": 100,
+      "window": "hour"
+    },
+    "requireVerification": false
+  },
+  "pathPolicies": [
+    {
+      "path": "/docs/**",
+      "allow": true,
+      "actions": ["read", "index", "summarize", "extract"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 500,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/api/v1/**",
+      "allow": true,
+      "actions": ["api_call", "read", "tool_invoke"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 5000,
+        "window": "hour"
+      },
+      "agentAllowlist": [
+        "did:web:comet.perplexity.ai",
+        "did:web:gemini.google.com",
+        "did:web:claude.anthropic.com",
+        "did:web:chatgpt.openai.com"
+      ]
+    },
+    {
+      "path": "/api/v1/admin/**",
+      "allow": false,
+      "agentDenylist": ["*"]
+    },
+    {
+      "path": "/api/v1/billing/**",
+      "allow": false
+    },
+    {
+      "path": "/health",
+      "allow": true,
+      "actions": ["read", "api_call"],
+      "requireVerification": false
+    },
+    {
+      "path": "/webhooks/**",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 100,
+        "window": "minute"
+      }
+    }
+  ],
+  "verification": {
+    "method": ["partner-token", "did"],
+    "registry": "https://registry.agentpolicy.org",
+    "verificationEndpoint": "https://api.example.com/agent-verify"
+  },
+  "contact": {
+    "email": "api-support@example.com",
+    "policyUrl": "https://api.example.com/docs/agent-policy",
+    "abuseUrl": "https://api.example.com/report-abuse"
+  },
+  "metadata": {
+    "description": "API-first SaaS: documentation freely accessible, API endpoints require verification with high rate limits for approved agents, admin/billing endpoints fully blocked.",
+    "owner": "Example SaaS Inc",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  },
+  "interop": {
+    "a2aAgentCard": "https://api.example.com/.well-known/agent.json",
+    "mcpServerUrl": "https://api.example.com/mcp",
+    "webmcpEnabled": false
+  }
+}
+```
+
+## How It Works
+
+### Open Documentation
+
+The `/docs/**` path allows full access including extraction (500 requests/hour). AI agents can learn your API by reading docs, which improves integration quality.
+
+### Verified API Access
+
+API endpoints require verification and are restricted to allowlisted agents. The `tool_invoke` action enables MCP-compatible agents to interact with your API as tools.
+
+### Admin/Billing Lockdown
+
+Admin and billing endpoints use `agentDenylist: ["*"]` to block all agents, including those that might otherwise be on an allowlist.
+
+### Health Check
+
+The `/health` endpoint is open without verification — useful for monitoring agents.

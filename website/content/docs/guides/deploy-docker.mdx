@@ -1,0 +1,139 @@
+---
+title: Deploy with Docker
+description: Deploy APoP enforcement using Docker containers.
+---
+
+# Deploy with Docker
+
+Use the official Docker setup to run APoP enforcement in containers.
+
+## Quick Start with Docker Compose
+
+The project includes a `docker-compose.yml` for a complete APoP enforcement setup.
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/agent-policy-protocol/spec.git
+cd spec
+```
+
+### Step 2: Create Your Policy
+
+```json title="agent-policy.json"
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  },
+  "pathPolicies": [{ "path": "/admin/*", "allow": false }]
+}
+```
+
+### Step 3: Run with Docker Compose
+
+```bash
+docker compose up -d
+```
+
+This starts:
+
+- An APoP middleware proxy on port 3000
+- Policy discovery endpoint at `/.well-known/agent-policy.json`
+
+### Step 4: Test
+
+```bash
+curl http://localhost:3000/.well-known/agent-policy.json
+
+curl -H "Agent-Name: TestBot/1.0" \
+     -H "Agent-Intent: read" \
+     http://localhost:3000/
+```
+
+## Custom Dockerfile
+
+Build a custom image with your policy baked in:
+
+```dockerfile title="Dockerfile"
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install the SDK
+RUN npm init -y && npm install @apop/node express
+
+# Copy your policy and server
+COPY agent-policy.json .
+COPY server.js .
+
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+```js title="server.js"
+import express from "express";
+import {
+  parsePolicyFile,
+  createExpressMiddleware,
+  createDiscoveryEndpoint,
+} from "@apop/node";
+
+const result = await parsePolicyFile("./agent-policy.json");
+if (!result.valid) {
+  console.error("Invalid policy:", result.errors);
+  process.exit(1);
+}
+
+const app = express();
+app.use(createExpressMiddleware({ policy: result.policy }));
+app.get(
+  "/.well-known/agent-policy.json",
+  createDiscoveryEndpoint(result.policy),
+);
+
+app.get("/", (req, res) => res.send("Hello from APoP!"));
+app.listen(3000, () => console.log("APoP server running on :3000"));
+```
+
+### Build and Run
+
+```bash
+docker build -t apop-server .
+docker run -p 3000:3000 apop-server
+```
+
+## Docker Compose for Production
+
+```yaml title="docker-compose.yml"
+services:
+  apop:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./agent-policy.json:/app/agent-policy.json:ro
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:3000/.well-known/agent-policy.json",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+## Notes
+
+- Mount the policy file as a volume to update without rebuilding
+- Use the health check to monitor policy availability
+- For production, consider adding a reverse proxy (Nginx, Traefik) in front

@@ -1,0 +1,11 @@
+{
+  "title": "Specification",
+  "pages": [
+    "overview",
+    "discovery",
+    "agent-identification",
+    "http-extensions",
+    "schema-reference",
+    "changelog"
+  ]
+}

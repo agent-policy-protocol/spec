@@ -1,0 +1,159 @@
+---
+title: Next.js Integration
+description: Complete guide to integrating APoP into a Next.js application with App Router.
+---
+
+# Next.js Integration
+
+Full guide for adding APoP enforcement to a Next.js application using the App Router.
+
+## Install
+
+```bash
+npm install @apop/node
+```
+
+## Project Setup
+
+### 1. Define Your Policy
+
+```ts title="lib/apop-policy.ts"
+import type { AgentPolicy } from "@apop/node";
+
+export const apopPolicy: AgentPolicy = {
+  version: "1.0",
+  policyUrl: "https://yoursite.com/.well-known/agent-policy.json",
+  defaultPolicy: {
+    allow: true,
+    actions: ["read", "render", "index", "summarize"],
+    disallow: ["extract", "automated_purchase"],
+    rateLimit: { requests: 200, window: "hour" },
+    requireVerification: false,
+  },
+  pathPolicies: [
+    {
+      path: "/dashboard/*",
+      allow: false,
+    },
+    {
+      path: "/api/**",
+      allow: true,
+      actions: ["api_call", "read"],
+      requireVerification: true,
+      rateLimit: { requests: 500, window: "hour" },
+    },
+  ],
+  metadata: {
+    description: "My Next.js app policy",
+    owner: "My Company",
+  },
+};
+```
+
+### 2. Add Edge Middleware
+
+```ts title="middleware.ts"
+import { NextResponse } from "next/server";
+import { createNextMiddleware } from "@apop/node/middleware/nextjs";
+import { apopPolicy } from "./lib/apop-policy";
+
+const apop = createNextMiddleware({ policy: apopPolicy });
+
+export function middleware(request) {
+  const result = apop(request, NextResponse);
+  if (result) return result;
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    // Match all paths except static files
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)",
+  ],
+};
+```
+
+### 3. Serve the Policy
+
+**Option A: Static file (simplest)**
+
+```bash
+mkdir -p public/.well-known
+```
+
+```json title="public/.well-known/agent-policy.json"
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "render"]
+  }
+}
+```
+
+**Option B: API route (dynamic)**
+
+```ts title="app/.well-known/agent-policy.json/route.ts"
+import { NextResponse } from "next/server";
+import { apopPolicy } from "@/lib/apop-policy";
+
+export function GET() {
+  return NextResponse.json(apopPolicy, {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
+}
+```
+
+### 4. Add HTTP Header (Optional)
+
+Advertise the policy via headers in `next.config.ts`:
+
+```ts title="next.config.ts"
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Agent-Policy",
+            value: "https://yoursite.com/.well-known/agent-policy.json",
+          },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
+```
+
+## Testing Locally
+
+```bash
+npm run dev
+```
+
+```bash
+# Normal request — passes through
+curl http://localhost:3000/
+
+# Agent request — enforced
+curl -H "Agent-Name: TestBot/1.0" \
+     -H "Agent-Intent: read" \
+     http://localhost:3000/
+
+# Blocked path
+curl -H "Agent-Name: TestBot/1.0" \
+     -H "Agent-Intent: read" \
+     http://localhost:3000/dashboard/settings
+# → 430
+
+# Policy discovery
+curl http://localhost:3000/.well-known/agent-policy.json
+```

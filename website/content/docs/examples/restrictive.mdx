@@ -1,0 +1,104 @@
+---
+title: Restrictive (High Security)
+description: APoP policy template for high-security environments — deny-by-default with minimal access.
+---
+
+# Restrictive (High Security)
+
+A maximally restrictive policy for sensitive corporate sites or high-security environments that want to minimize AI agent access.
+
+## Use Case
+
+- Deny all agent access by default
+- Allow only minimal read access to a few specific pages
+- Require Verifiable Credential verification for all access
+- Extremely low rate limits
+- Only the homepage, about page, robots.txt, and the policy itself are accessible
+
+## Full Policy
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://secure.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": false,
+    "disallow": ["all"],
+    "requireVerification": true
+  },
+  "pathPolicies": [
+    {
+      "path": "/",
+      "allow": true,
+      "actions": ["read"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 10,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/robots.txt",
+      "allow": true,
+      "actions": ["read"],
+      "requireVerification": false
+    },
+    {
+      "path": "/.well-known/agent-policy.json",
+      "allow": true,
+      "actions": ["read"],
+      "requireVerification": false
+    },
+    {
+      "path": "/public/about",
+      "allow": true,
+      "actions": ["read"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 5,
+        "window": "hour"
+      }
+    }
+  ],
+  "verification": {
+    "method": ["verifiable-credential"],
+    "registry": "https://registry.agentpolicy.org",
+    "trustedIssuers": ["did:web:trust.agentpolicy.org"],
+    "verificationEndpoint": "https://secure.example.com/agent-verify"
+  },
+  "contact": {
+    "email": "security@secure.example.com",
+    "abuseUrl": "https://secure.example.com/report-abuse"
+  },
+  "metadata": {
+    "description": "Highly restrictive policy: deny all by default, only allow read on root and about page with strict verification.",
+    "owner": "Example Security Corp",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  }
+}
+```
+
+## How It Works
+
+### Deny Everything by Default
+
+The `defaultPolicy` blocks all actions (`disallow: ["all"]`) and requires verification. Any path not explicitly listed is completely inaccessible.
+
+### Minimal Exceptions
+
+Only 4 paths are accessible:
+
+- `/` — Homepage, read-only, verified agents, 10 requests/hour
+- `/robots.txt` — Standard robots file, no verification needed
+- `/.well-known/agent-policy.json` — The policy itself must be readable
+- `/public/about` — About page, read-only, verified, 5 requests/hour
+
+### Strict Verification
+
+All access requires Verifiable Credentials — the strongest form of identity verification in APoP.
+
+### When to Use This Template
+
+Use this for financial institutions, defense contractors, legal firms, or any organization where AI agent access should be minimized. The policy makes your stance clear while still allowing agents to discover and read your policy.

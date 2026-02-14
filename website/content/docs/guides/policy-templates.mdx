@@ -1,0 +1,89 @@
+---
+title: Policy Templates
+description: Overview of all 9 APoP policy templates with comparison and guidance.
+---
+
+# Policy Templates
+
+APoP ships with 9 ready-made policy templates covering common use cases. Each template is a complete, valid `agent-policy.json` that you can use as-is or customize for your needs.
+
+## Template Comparison
+
+| Template                                        | Default | Verification      | Rate Limit    | Best For                       |
+| ----------------------------------------------- | ------- | ----------------- | ------------- | ------------------------------ |
+| [News Publisher](/docs/examples/news-publisher) | Allow   | Premium only      | 60-200/hour   | Media, journalism, blogs       |
+| [E-Commerce](/docs/examples/ecommerce)          | Allow   | Checkout          | 10-1000/hour  | Online stores, marketplaces    |
+| [SaaS API](/docs/examples/saas-api)             | Allow   | API access        | 100-5000/hour | API platforms, developer tools |
+| [Healthcare](/docs/examples/healthcare)         | Deny    | Required          | 20-100/hour   | Hospitals, clinics, HIPAA      |
+| [Open Data](/docs/examples/open-data)           | Allow   | None              | 10000-50000   | Government data, research      |
+| [Restrictive](/docs/examples/restrictive)       | Deny    | Required          | 5-10/hour     | Finance, defense, legal        |
+| [Personal Blog](/docs/examples/personal-blog)   | Allow   | None              | 100/hour      | Personal sites, portfolios     |
+| [WordPress](/docs/examples/wordpress)           | Allow   | WooCommerce       | 120-300/hour  | WordPress sites                |
+| [Multi-Protocol](/docs/examples/multi-protocol) | Allow   | Protocol-specific | 50-2000/hour  | Agentic platforms              |
+
+## Choosing a Template
+
+### By Security Level
+
+**Permissive** (most open → most restrictive):
+
+1. Open Data — Everything allowed, high limits
+2. Personal Blog — Read/summarize allowed, no verification
+3. News Publisher — Public open, premium gated
+4. WordPress — Standard CMS protection
+5. E-Commerce — Product browsing open, commerce gated
+6. SaaS API — Docs open, API verified
+7. Healthcare — Deny by default, strict verification
+8. Restrictive — Minimal access, everything verified
+
+### By Industry
+
+| Industry              | Recommended Template                            |
+| --------------------- | ----------------------------------------------- |
+| News & Media          | [News Publisher](/docs/examples/news-publisher) |
+| E-Commerce            | [E-Commerce](/docs/examples/ecommerce)          |
+| SaaS / API            | [SaaS API](/docs/examples/saas-api)             |
+| Healthcare            | [Healthcare](/docs/examples/healthcare)         |
+| Government / Research | [Open Data](/docs/examples/open-data)           |
+| Finance / Legal       | [Restrictive](/docs/examples/restrictive)       |
+| Personal Website      | [Personal Blog](/docs/examples/personal-blog)   |
+| WordPress Site        | [WordPress](/docs/examples/wordpress)           |
+| Platform / Hub        | [Multi-Protocol](/docs/examples/multi-protocol) |
+
+## Using a Template
+
+### Step 1: Choose a template from the list above
+
+### Step 2: Copy the JSON
+
+Each template page includes the full JSON. Copy it to your project:
+
+```bash
+curl -o agent-policy.json \
+  https://raw.githubusercontent.com/agent-policy-protocol/spec/main/examples/news-publisher.json
+```
+
+### Step 3: Customize
+
+Update the `policyUrl`, `contact`, and `metadata` fields to match your site:
+
+```json
+{
+  "policyUrl": "https://yoursite.com/.well-known/agent-policy.json",
+  "contact": {
+    "email": "your-email@example.com"
+  },
+  "metadata": {
+    "owner": "Your Organization"
+  }
+}
+```
+
+### Step 4: Deploy
+
+See the deployment guides:
+
+- [Vercel](/docs/guides/deploy-vercel)
+- [Cloudflare](/docs/guides/deploy-cloudflare)
+- [Docker](/docs/guides/deploy-docker)
+- [WordPress](/docs/guides/wordpress)

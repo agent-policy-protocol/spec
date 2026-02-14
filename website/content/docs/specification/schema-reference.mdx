@@ -1,0 +1,313 @@
+---
+title: Schema Reference
+description: Complete reference for every field in the agent-policy.json schema.
+---
+
+# Schema Reference
+
+This page documents every field in the APoP policy manifest. The schema is defined in [JSON Schema Draft 2020-12](https://json-schema.org/draft/2020-12/schema) and is available at:
+
+```
+https://agentpolicy.org/schema/v1/agent-policy.schema.json
+```
+
+## Root Object
+
+The top-level policy object. Two fields are required: `version` and `defaultPolicy`.
+
+| Field           | Type                                  | Required    | Description                                                                                           |
+| --------------- | ------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
+| `$schema`       | `string` (URI)                        | No          | Reference to the JSON Schema for editor validation.                                                   |
+| `version`       | `string`                              | **Yes**     | Protocol version. Must be `"0.1"` or `"1.0"`.                                                         |
+| `policyUrl`     | `string` (URI)                        | Recommended | Canonical URL where this policy is hosted. Without this, error responses cannot reference the policy. |
+| `defaultPolicy` | [PolicyRule](#policyrule)             | **Yes**     | Site-wide fallback rules. Applies when no path-specific rule matches.                                 |
+| `pathPolicies`  | [PathPolicy](#pathpolicy)[]           | No          | Ordered array of path-specific overrides. First matching path wins.                                   |
+| `verification`  | [Verification](#verification)         | No          | Agent identity verification configuration.                                                            |
+| `contact`       | [Contact](#contact)                   | No          | Contact information for policy questions or abuse reports.                                            |
+| `metadata`      | [Metadata](#metadata)                 | No          | Human-readable metadata about the policy.                                                             |
+| `interop`       | [Interoperability](#interoperability) | No          | Cross-protocol interoperability declarations.                                                         |
+
+### Example
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "render"]
+  }
+}
+```
+
+---
+
+## PolicyRule
+
+A set of rules governing agent access. Used for `defaultPolicy` and as the base for `PathPolicy`.
+
+| Field                 | Type                        | Required | Default | Description                                                                     |
+| --------------------- | --------------------------- | -------- | ------- | ------------------------------------------------------------------------------- |
+| `allow`               | `boolean`                   | **Yes**  | —       | If `true`, access is allowed by default. If `false`, access is denied.          |
+| `actions`             | [ActionType](#actiontype)[] | No       | —       | Explicit list of permitted action types.                                        |
+| `disallow`            | [ActionType](#actiontype)[] | No       | —       | Explicitly disallowed actions. Takes precedence over `allow` when both present. |
+| `rateLimit`           | [RateLimit](#ratelimit)     | No       | —       | Rate limiting configuration.                                                    |
+| `requireVerification` | `boolean`                   | No       | `false` | If `true`, agents must verify identity before access.                           |
+
+### Evaluation Order
+
+1. If `allow` is `false`, the request is denied (438).
+2. If content of `disallow` matches the agent's intent, the request is denied (438).
+3. If `actions` is present and the intent is not in the list, the request is denied (438).
+4. If `requireVerification` is `true` and the agent is not verified, the request is denied.
+5. If `rateLimit` is exceeded, the request is denied (429).
+6. Otherwise, the request is allowed.
+
+### Example
+
+```json
+{
+  "allow": true,
+  "actions": ["read", "index", "summarize"],
+  "disallow": ["extract", "automated_purchase"],
+  "rateLimit": { "requests": 100, "window": "hour" },
+  "requireVerification": false
+}
+```
+
+---
+
+## PathPolicy
+
+Path-specific policy override. Extends PolicyRule with path matching and agent filtering.
+
+| Field                 | Type                        | Required | Default | Description                                      |
+| --------------------- | --------------------------- | -------- | ------- | ------------------------------------------------ |
+| `path`                | `string`                    | **Yes**  | —       | URL path pattern. Supports glob-style wildcards. |
+| `allow`               | `boolean`                   | No       | —       | Override allow/deny for this path.               |
+| `actions`             | [ActionType](#actiontype)[] | No       | —       | Permitted actions on this path.                  |
+| `disallow`            | [ActionType](#actiontype)[] | No       | —       | Disallowed actions on this path.                 |
+| `rateLimit`           | [RateLimit](#ratelimit)     | No       | —       | Rate limit for this path.                        |
+| `requireVerification` | `boolean`                   | No       | `false` | Whether verification is required for this path.  |
+| `agentAllowlist`      | `string[]`                  | No       | —       | Only these agents may access this path.          |
+| `agentDenylist`       | `string[]`                  | No       | —       | These agents are blocked from this path.         |
+
+### Path Matching
+
+Path patterns support glob-style wildcards:
+
+| Pattern        | Matches                                                   |
+| -------------- | --------------------------------------------------------- |
+| `/public/*`    | `/public/page`, `/public/about` (single segment)          |
+| `/api/**`      | `/api/v1/users`, `/api/v2/data/items` (multiple segments) |
+| `/blog/*.html` | `/blog/post.html`                                         |
+| `/admin/*`     | `/admin/dashboard`, `/admin/settings`                     |
+
+### Agent Identifiers
+
+Agent identifiers in `agentAllowlist` and `agentDenylist` accept:
+
+- **DID URIs**: `did:web:comet.perplexity.ai`
+- **Email-style**: `mybot@company.com`
+- **Name patterns**: `googlebot`, `claude-agent`
+
+### Example
+
+```json
+{
+  "path": "/api/**",
+  "allow": true,
+  "actions": ["read", "api_call"],
+  "requireVerification": true,
+  "rateLimit": { "requests": 1000, "window": "hour" },
+  "agentAllowlist": ["did:web:comet.perplexity.ai", "did:web:gemini.google.com"]
+}
+```
+
+---
+
+## ActionType
+
+Standardized action type enum. Used in `actions` and `disallow` arrays.
+
+| Value                | Description                           |
+| -------------------- | ------------------------------------- |
+| `read`               | Read or view content                  |
+| `index`              | Add content to a search index         |
+| `extract`            | Extract structured data from content  |
+| `summarize`          | Generate summaries of content         |
+| `render`             | Render pages using a headless browser |
+| `api_call`           | Call API endpoints                    |
+| `form_submit`        | Submit forms                          |
+| `automated_purchase` | Make automated purchases              |
+| `tool_invoke`        | Invoke tools or functions             |
+| `all`                | Wildcard — matches all action types   |
+
+---
+
+## RateLimit
+
+Rate limiting configuration for agent requests.
+
+| Field      | Type      | Required | Description                                            |
+| ---------- | --------- | -------- | ------------------------------------------------------ |
+| `requests` | `integer` | **Yes**  | Maximum number of requests allowed. Minimum: `0`.      |
+| `window`   | `string`  | **Yes**  | Time window. Must be `"minute"`, `"hour"`, or `"day"`. |
+
+### Example
+
+```json
+{ "requests": 100, "window": "hour" }
+```
+
+---
+
+## Verification
+
+Configuration for agent identity verification.
+
+| Field                  | Type                   | Required | Description                                                                                                                                                |
+| ---------------------- | ---------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `method`               | `string` or `string[]` | **Yes**  | Verification method(s). One of: `"pkix"`, `"did"`, `"verifiable-credential"`, `"partner-token"`. Can be a single string or an array (any method suffices). |
+| `registry`             | `string` (URI)         | No       | URL of the verification registry for identity lookups.                                                                                                     |
+| `trustedIssuers`       | `string[]`             | No       | Trusted VC issuer DIDs. Only relevant when method includes `"verifiable-credential"`.                                                                      |
+| `verificationEndpoint` | `string` (URI)         | No       | URL where agents can initiate verification (key exchange or token request).                                                                                |
+
+### Verification Methods
+
+| Method                  | Description                                     |
+| ----------------------- | ----------------------------------------------- |
+| `pkix`                  | PKI certificate signature validation            |
+| `did`                   | Decentralized Identifier resolution             |
+| `verifiable-credential` | W3C Verifiable Credentials with trusted issuers |
+| `partner-token`         | Pre-shared API token verification               |
+
+### Example
+
+```json
+{
+  "method": ["did", "verifiable-credential"],
+  "registry": "https://registry.agentpolicy.org",
+  "trustedIssuers": ["did:web:trust.agentpolicy.org", "did:web:google.com"],
+  "verificationEndpoint": "https://example.com/verify"
+}
+```
+
+---
+
+## Contact
+
+Contact information for the policy owner.
+
+| Field       | Type             | Required | Description                                         |
+| ----------- | ---------------- | -------- | --------------------------------------------------- |
+| `email`     | `string` (email) | No       | Contact email for policy questions or compliance.   |
+| `policyUrl` | `string` (URI)   | No       | Human-readable policy page URL.                     |
+| `abuseUrl`  | `string` (URI)   | No       | URL for reporting agent abuse or policy violations. |
+
+### Example
+
+```json
+{
+  "email": "security@example.com",
+  "policyUrl": "https://example.com/agent-policy",
+  "abuseUrl": "https://example.com/report-abuse"
+}
+```
+
+---
+
+## Metadata
+
+Human-readable metadata about the policy.
+
+| Field          | Type                 | Required | Description                                              |
+| -------------- | -------------------- | -------- | -------------------------------------------------------- |
+| `description`  | `string`             | No       | Brief description of the policy's purpose.               |
+| `owner`        | `string`             | No       | Organization or individual that owns the website/policy. |
+| `maintainer`   | `string`             | No       | Contact for the person or team maintaining the policy.   |
+| `lastModified` | `string` (date-time) | No       | ISO 8601 timestamp of last policy update.                |
+| `license`      | `string`             | No       | License URL or SPDX identifier for the policy content.   |
+
+### Example
+
+```json
+{
+  "description": "Agent access policy for Example Corp",
+  "owner": "Example Corp",
+  "maintainer": "devops@example.com",
+  "lastModified": "2025-06-01T00:00:00Z",
+  "license": "CC-BY-4.0"
+}
+```
+
+---
+
+## Interoperability
+
+Cross-protocol interoperability declarations. Links the APoP policy to other agentic protocol endpoints.
+
+| Field             | Type           | Required | Default | Description                                                                                             |
+| ----------------- | -------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------- |
+| `a2aAgentCard`    | `string` (URI) | No       | —       | URL to the site's A2A Agent Card (Google Agent-to-Agent protocol). Typically `/.well-known/agent.json`. |
+| `mcpServerUrl`    | `string` (URI) | No       | —       | URL to the site's MCP server endpoint (Anthropic Model Context Protocol).                               |
+| `webmcpEnabled`   | `boolean`      | No       | `false` | Whether the site exposes WebMCP tools via `navigator.modelContext`.                                     |
+| `ucpCapabilities` | `string` (URI) | No       | —       | URL to the site's UCP capability profile (Universal Commerce Protocol).                                 |
+| `apaaiEndpoint`   | `string` (URI) | No       | —       | URL to the site's APAAI accountability endpoint for action logging.                                     |
+
+### Example
+
+```json
+{
+  "a2aAgentCard": "https://example.com/.well-known/agent.json",
+  "mcpServerUrl": "https://example.com/mcp",
+  "webmcpEnabled": true,
+  "ucpCapabilities": "https://example.com/.well-known/ucp-capabilities.json",
+  "apaaiEndpoint": "https://example.com/apaai/log"
+}
+```
+
+---
+
+## Schema Validation
+
+To validate a policy against the schema, reference it with `$schema`:
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read"]
+  }
+}
+```
+
+### Strict Mode
+
+The schema uses `additionalProperties: false` at every level. Unknown fields will cause validation errors. This ensures policies are explicit and prevents typos from silently being ignored.
+
+### Programmatic Validation
+
+Using the Node.js SDK:
+
+```typescript
+import { validatePolicy } from "@apop/node";
+
+const result = validatePolicy(policyObject);
+if (!result.valid) {
+  console.error("Validation errors:", result.errors);
+}
+```
+
+Using the Python SDK:
+
+```python
+from apop import validate_policy
+
+result = validate_policy(policy_dict)
+if not result.valid:
+    print("Validation errors:", result.errors)
+```

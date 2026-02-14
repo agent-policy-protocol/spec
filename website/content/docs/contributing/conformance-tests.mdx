@@ -1,0 +1,220 @@
+---
+title: Conformance Tests
+description: How to run and write conformance tests for the Agent Policy Protocol.
+---
+
+# Conformance Tests
+
+The conformance test suite validates that implementations correctly follow the APoP specification. All SDKs and middleware must pass these tests.
+
+## Overview
+
+The conformance tests are located in `tests/conformance/` and cover:
+
+| Test File                    | What It Tests                               |
+| ---------------------------- | ------------------------------------------- |
+| `test-policy-parsing.js`     | JSON parsing, schema validation, defaults   |
+| `test-path-matching.js`      | Glob and regex path matching                |
+| `test-intent-enforcement.js` | Allow/deny intent decisions                 |
+| `test-allowlist-denylist.js` | Agent ID allowlist/denylist logic           |
+| `test-rate-limiting.js`      | Rate limit header enforcement               |
+| `test-status-codes.js`       | Correct HTTP status codes (438, 439)        |
+| `test-agent-headers.js`      | X-Agent-Id, X-Agent-Intent headers          |
+| `test-discovery.js`          | Well-known URI, headers, meta tag discovery |
+| `test-verification.js`       | DID and VC verification fields              |
+| `validate-examples.js`       | All example policies pass schema validation |
+
+## Running the Tests
+
+### Prerequisites
+
+```bash
+node --version  # v18 or later required
+cd tests/conformance
+npm install
+```
+
+### Run All Tests
+
+```bash
+npx vitest
+```
+
+### Run a Specific Test
+
+```bash
+npx vitest test-policy-parsing.js
+npx vitest test-path-matching.js
+```
+
+### Watch Mode
+
+```bash
+npx vitest --watch
+```
+
+## Writing New Tests
+
+### Test Structure
+
+Each test file uses [Vitest](https://vitest.dev) and follows this structure:
+
+```javascript
+import { describe, it, expect } from "vitest";
+import { loadFixture, createRequest } from "./helpers.js";
+
+describe("Feature Name", () => {
+  describe("basic behavior", () => {
+    it("should handle the simplest case", () => {
+      const policy = loadFixture("minimal-policy");
+      // assertion
+      expect(result).toBe(expected);
+    });
+  });
+
+  describe("edge cases", () => {
+    it("should handle missing fields gracefully", () => {
+      // ...
+    });
+  });
+});
+```
+
+### Using Helpers
+
+The `helpers.js` file provides test utilities:
+
+```javascript
+import {
+  loadFixture, // Load a test policy fixture
+  createRequest, // Create a mock HTTP request
+  parseTestPolicy, // Parse a policy for testing
+} from "./helpers.js";
+```
+
+### Test Categories
+
+When writing tests, cover these categories:
+
+#### 1. Happy Path
+
+Test the expected behavior with valid inputs:
+
+```javascript
+it("should allow read intent on public path", () => {
+  const policy = {
+    version: "1.0",
+    defaultPolicy: {
+      allowedActions: ["read"],
+    },
+  };
+  const result = enforce(policy, {
+    path: "/public/page",
+    intent: "read",
+  });
+  expect(result.allowed).toBe(true);
+});
+```
+
+#### 2. Edge Cases
+
+Test boundary conditions:
+
+```javascript
+it("should handle empty pathPolicies array", () => {
+  const policy = {
+    version: "1.0",
+    defaultPolicy: { allowedActions: ["read"] },
+    pathPolicies: [],
+  };
+  // Should fall back to defaultPolicy
+  const result = enforce(policy, { path: "/any" });
+  expect(result.allowed).toBe(true);
+});
+```
+
+#### 3. Error Cases
+
+Test invalid inputs:
+
+```javascript
+it("should reject policy without version", () => {
+  expect(() => parsePolicy({})).toThrow();
+});
+```
+
+#### 4. Spec Compliance
+
+Test specific requirements from the specification:
+
+```javascript
+it("should return 438 for disallowed intent (spec §4.2)", () => {
+  const result = enforce(policy, {
+    path: "/api/data",
+    intent: "scrape",
+  });
+  expect(result.statusCode).toBe(438);
+});
+
+it("should return 439 for disallowed agent (spec §4.3)", () => {
+  const result = enforce(policy, {
+    path: "/api/data",
+    agentId: "blocked-bot",
+  });
+  expect(result.statusCode).toBe(439);
+});
+```
+
+## Validating Example Policies
+
+The `validate-examples.js` test ensures all example policies in `examples/` are valid:
+
+```bash
+npx vitest validate-examples.js
+```
+
+This test:
+
+1. Loads each `.json` file from the `examples/` directory
+2. Validates it against `spec/schema/agent-policy.schema.json`
+3. Reports any validation errors
+
+When adding a new example policy, this test will automatically pick it up.
+
+## Adding a New Test File
+
+1. Create the file in `tests/conformance/`:
+
+   ```
+   tests/conformance/test-my-feature.js
+   ```
+
+2. Import the test helpers and relevant SDK modules
+
+3. Write tests covering happy path, edge cases, and error cases
+
+4. Run the full suite to make sure nothing breaks:
+
+   ```bash
+   npx vitest
+   ```
+
+5. Add a description to this documentation page
+
+## CI Integration
+
+The conformance tests run automatically on every PR via GitHub Actions. A PR cannot be merged unless all conformance tests pass.
+
+The CI pipeline runs tests against:
+
+- Node.js 18, 20, and 22
+- The latest published SDK versions
+- The development branch SDK versions
+
+## Tips
+
+- Keep tests focused — one assertion per test when possible
+- Use descriptive test names that reference the spec section
+- Add comments linking to the spec for non-obvious behavior
+- Use `describe` blocks to group related tests
+- Test both the positive case (should allow) and negative case (should deny)

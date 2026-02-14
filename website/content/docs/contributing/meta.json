@@ -1,0 +1,9 @@
+{
+  "title": "Contributing",
+  "pages": [
+    "how-to-contribute",
+    "spec-changes",
+    "sdk-development",
+    "conformance-tests"
+  ]
+}

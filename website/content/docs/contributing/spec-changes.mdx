@@ -1,0 +1,118 @@
+---
+title: Proposing Spec Changes
+description: How to propose changes to the Agent Policy Protocol specification.
+---
+
+# Proposing Spec Changes
+
+The APoP specification is a living document. We welcome proposals to improve it.
+
+## Process
+
+### 1. Open a Discussion First
+
+Before writing code, start a **GitHub Discussion** in the [spec repository](https://github.com/agent-policy-protocol/spec/discussions):
+
+- Describe the problem or gap
+- Explain your proposed solution
+- Provide examples showing before/after
+- Tag it with the `spec` label
+
+### 2. Get Community Feedback
+
+Allow at least 7 days for community feedback. Key questions to address:
+
+- Does this break backward compatibility?
+- How does it affect existing implementations?
+- Is there a simpler way to achieve the same goal?
+- Does it overlap with other fields in the spec?
+
+### 3. Write the RFC
+
+If the community supports the idea, write a formal proposal:
+
+```markdown
+# RFC: [Title]
+
+## Summary
+
+One-paragraph summary of the change.
+
+## Motivation
+
+Why this change is needed.
+
+## Specification
+
+Exact changes to the spec documents, schema, and types.
+
+## Examples
+
+Before/after JSON examples.
+
+## Backward Compatibility
+
+Impact on existing policies and SDKs.
+
+## Alternatives Considered
+
+Other approaches that were evaluated.
+```
+
+### 4. Submit a Pull Request
+
+- Fork the spec repository
+- Create a branch: `rfc/your-feature-name`
+- Update the relevant spec documents in `spec/`
+- Update `spec/schema/agent-policy.schema.json` if the change affects the schema
+- Update TypeScript types in `sdk/node/src/types.ts`
+- Update Python types in `sdk/python/src/apop/types.py`
+- Add conformance tests in `tests/conformance/`
+- Open a PR with the RFC in the description
+
+### 5. Review and Merge
+
+The maintainers will review the PR. Spec changes require:
+
+- At least 2 maintainer approvals
+- All conformance tests passing
+- Updated documentation
+- Updated example policies (if applicable)
+
+## Types of Spec Changes
+
+### Minor (patch versions)
+
+- Clarifications to existing text
+- Additional examples
+- Fixing typos or formatting
+
+### Moderate (minor versions)
+
+- New optional fields
+- New action types
+- New verification methods
+- New discovery methods
+
+### Breaking (major versions)
+
+- Removing or renaming existing fields
+- Changing field types
+- Removing action types
+- Changing status codes
+
+## Schema Change Guidelines
+
+When modifying `agent-policy.schema.json`:
+
+1. Use JSON Schema Draft 2020-12 syntax
+2. Add `description` to every new field
+3. Add `default` values where sensible
+4. Add `examples` where helpful
+5. Run schema validation against all examples: `cd tests/conformance && npm test`
+
+## Notes
+
+- All spec changes must be backward-compatible unless a new major version is released.
+- The `version` field in the spec uses semantic versioning.
+- The spec is licensed under Apache 2.0.

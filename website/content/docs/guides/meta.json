@@ -1,0 +1,12 @@
+{
+  "title": "Guides",
+  "pages": [
+    "deploy-vercel",
+    "deploy-cloudflare",
+    "deploy-docker",
+    "nextjs",
+    "fastapi",
+    "wordpress",
+    "policy-templates"
+  ]
+}

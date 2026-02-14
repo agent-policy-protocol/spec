@@ -1,0 +1,135 @@
+---
+title: Deploy on Vercel
+description: Step-by-step guide to deploy APoP enforcement on Vercel.
+---
+
+# Deploy on Vercel
+
+Deploy APoP enforcement on Vercel using Next.js or any framework with Edge Middleware.
+
+## Option 1: Static Policy File
+
+The simplest approach — serve the policy as a static file.
+
+### Step 1: Create the Policy
+
+```json title="public/.well-known/agent-policy.json"
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://yoursite.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "disallow": ["extract", "automated_purchase"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  }
+}
+```
+
+### Step 2: Deploy
+
+```bash
+vercel deploy
+```
+
+Your policy is now live at `https://yoursite.com/.well-known/agent-policy.json`.
+
+## Option 2: Next.js with Middleware
+
+Full enforcement using Next.js middleware at the edge.
+
+### Step 1: Install the SDK
+
+```bash
+npm install @apop/node
+```
+
+### Step 2: Create the Policy
+
+```ts title="lib/policy.ts"
+import type { AgentPolicy } from "@apop/node";
+
+export const policy: AgentPolicy = {
+  version: "1.0",
+  policyUrl: "https://yoursite.com/.well-known/agent-policy.json",
+  defaultPolicy: {
+    allow: true,
+    actions: ["read", "render"],
+    rateLimit: { requests: 100, window: "hour" },
+  },
+  pathPolicies: [
+    { path: "/admin/*", allow: false },
+    { path: "/api/**", allow: true, requireVerification: true },
+  ],
+};
+```
+
+### Step 3: Add Middleware
+
+```ts title="middleware.ts"
+import { NextResponse } from "next/server";
+import { createNextMiddleware } from "@apop/node/middleware/nextjs";
+import { policy } from "./lib/policy";
+
+const apop = createNextMiddleware({ policy });
+
+export function middleware(request) {
+  const result = apop(request, NextResponse);
+  if (result) return result;
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: "/((?!_next/static|_next/image|favicon.ico).*)",
+};
+```
+
+### Step 4: Serve the Policy
+
+```ts title="app/api/.well-known/agent-policy/route.ts"
+import { NextResponse } from "next/server";
+import { policy } from "@/lib/policy";
+
+export function GET() {
+  return NextResponse.json(policy, {
+    headers: { "Cache-Control": "public, max-age=3600" },
+  });
+}
+```
+
+### Step 5: Deploy
+
+```bash
+vercel deploy --prod
+```
+
+## Vercel Configuration
+
+Add custom headers in `vercel.json` to advertise the policy:
+
+```json title="vercel.json"
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Agent-Policy",
+          "value": "https://yoursite.com/.well-known/agent-policy.json"
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Verify Deployment
+
+```bash
+curl -I https://yoursite.com/.well-known/agent-policy.json
+
+curl -H "Agent-Name: TestBot/1.0" \
+     -H "Agent-Intent: read" \
+     https://yoursite.com/
+```

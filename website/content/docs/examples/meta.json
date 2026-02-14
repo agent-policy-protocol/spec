@@ -1,0 +1,14 @@
+{
+  "title": "Examples",
+  "pages": [
+    "news-publisher",
+    "ecommerce",
+    "saas-api",
+    "healthcare",
+    "open-data",
+    "restrictive",
+    "personal-blog",
+    "wordpress",
+    "multi-protocol"
+  ]
+}

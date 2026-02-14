@@ -1,0 +1,123 @@
+---
+title: Healthcare (HIPAA)
+description: APoP policy template for healthcare organizations — HIPAA-compliant, deny-by-default, strict verification.
+---
+
+# Healthcare (HIPAA)
+
+A policy template for healthcare organizations that need HIPAA-compliant agent policies with deny-by-default access and strict verification requirements.
+
+## Use Case
+
+- Deny all agent access by default for maximum security
+- Block all access to patient records and personal data
+- Allow only verified, allowlisted agents to book appointments
+- Provide public information (hours, locations, services) without verification
+- Require Verifiable Credentials from HIPAA-compliant issuers
+
+## Full Policy
+
+```json
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://hospital.example.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": false,
+    "disallow": ["all"],
+    "requireVerification": true
+  },
+  "pathPolicies": [
+    {
+      "path": "/public/**",
+      "allow": true,
+      "actions": ["read", "index"],
+      "requireVerification": false,
+      "rateLimit": {
+        "requests": 50,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/patient/**",
+      "allow": false,
+      "disallow": ["all"]
+    },
+    {
+      "path": "/records/**",
+      "allow": false,
+      "disallow": ["all"]
+    },
+    {
+      "path": "/api/v1/appointments/*",
+      "allow": true,
+      "actions": ["api_call"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 20,
+        "window": "hour"
+      },
+      "agentAllowlist": [
+        "did:web:healthbot.epic.com",
+        "did:web:medical.google.com"
+      ]
+    },
+    {
+      "path": "/api/v1/directory/*",
+      "allow": true,
+      "actions": ["api_call", "read"],
+      "requireVerification": true,
+      "rateLimit": {
+        "requests": 100,
+        "window": "hour"
+      }
+    },
+    {
+      "path": "/admin/**",
+      "allow": false
+    }
+  ],
+  "verification": {
+    "method": ["verifiable-credential"],
+    "registry": "https://registry.agentpolicy.org",
+    "trustedIssuers": [
+      "did:web:trust.agentpolicy.org",
+      "did:web:hipaa-compliance.hhs.gov"
+    ],
+    "verificationEndpoint": "https://hospital.example.com/agent-verify"
+  },
+  "contact": {
+    "email": "compliance@hospital.example.com",
+    "policyUrl": "https://hospital.example.com/ai-policy",
+    "abuseUrl": "https://hospital.example.com/report-violation"
+  },
+  "metadata": {
+    "description": "HIPAA-sensitive healthcare policy: deny all by default, patient/records paths fully blocked, only allowlisted verified agents may book appointments.",
+    "owner": "Example Hospital System",
+    "lastModified": "2026-02-14T00:00:00Z",
+    "license": "Apache-2.0"
+  }
+}
+```
+
+## How It Works
+
+### Deny-by-Default
+
+The `defaultPolicy` uses `allow: false` with `disallow: ["all"]` — blocking every agent action unless explicitly permitted. This is the most secure starting point for sensitive environments.
+
+### Patient Data Protection
+
+Both `/patient/**` and `/records/**` paths are explicitly blocked with `disallow: ["all"]`, ensuring no agent can access protected health information (PHI).
+
+### Allowlisted Appointments
+
+Only verified agents from trusted healthcare platforms (Epic, Google Health) can access the appointment booking API, with strict rate limits of 20 requests/hour.
+
+### Public Information
+
+The `/public/**` path allows reading and indexing of non-sensitive content like office hours, locations, and general health information — no verification required.
+
+### HIPAA Compliance
+
+The policy requires Verifiable Credentials from `did:web:hipaa-compliance.hhs.gov`, ensuring that only agents with provable HIPAA compliance credentials can access sensitive functionality.

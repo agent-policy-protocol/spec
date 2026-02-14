@@ -1,0 +1,134 @@
+---
+title: Discovery
+description: Discover APoP policies from any domain using the @apop/node SDK.
+---
+
+# Discovery
+
+The discovery module implements the APoP 4-method discovery chain to find a domain's agent policy.
+
+## Import
+
+```ts
+import { discoverPolicy } from "@apop/node";
+import type { DiscoveryResult, DiscoveryOptions } from "@apop/node";
+```
+
+## `discoverPolicy(domain, options?)`
+
+Discover an APoP policy for a given domain by trying all 4 discovery methods in order.
+
+```ts
+import { discoverPolicy } from "@apop/node";
+
+const result = await discoverPolicy("example.com");
+
+if (result.policy) {
+  console.log(`Found via ${result.method}: ${result.policyUrl}`);
+  console.log(`Version: ${result.policy.version}`);
+  console.log(`Default allow: ${result.policy.defaultPolicy.allow}`);
+} else {
+  console.log(`No policy found: ${result.error}`);
+}
+```
+
+### Parameters
+
+| Parameter | Type               | Required | Description                   |
+| --------- | ------------------ | -------- | ----------------------------- |
+| `domain`  | `string`           | Yes      | Domain to discover policy for |
+| `options` | `DiscoveryOptions` | No       | Optional configuration        |
+
+### `DiscoveryOptions`
+
+```ts
+interface DiscoveryOptions {
+  timeout?: number; // Request timeout in ms (default: 5000)
+}
+```
+
+### Returns: `Promise<DiscoveryResult>`
+
+```ts
+interface DiscoveryResult {
+  policy: AgentPolicy | null;
+  policyUrl?: string;
+  method?: "well-known" | "http-header" | "meta-tag" | "dns-txt";
+  error?: string;
+}
+```
+
+## Discovery Methods
+
+The discovery chain tries these methods in order, stopping at the first success:
+
+### 1. Well-Known URI
+
+```
+GET https://{domain}/.well-known/agent-policy.json
+```
+
+The standard discovery method. The SDK fetches the policy from the well-known location and parses it.
+
+### 2. HTTP Header
+
+```
+GET https://{domain}/
+→ Response header: Agent-Policy: https://example.com/policy.json
+```
+
+If the domain's homepage includes an `Agent-Policy` header, the SDK fetches the policy from the URL specified in the header.
+
+### 3. HTML Meta Tag
+
+```html
+<meta name="agent-policy" content="https://example.com/policy.json" />
+```
+
+The SDK parses the HTML response from the domain's homepage looking for an `agent-policy` meta tag.
+
+### 4. DNS TXT Record
+
+```
+_agent-policy.example.com  TXT  "agent-policy=https://example.com/policy.json"
+```
+
+As a final fallback, the SDK queries DNS TXT records for the `_agent-policy` subdomain.
+
+## Caching
+
+The discovery client does not implement caching internally. For production use, consider caching the `DiscoveryResult` based on:
+
+- The domain name as cache key
+- A TTL of 5–60 minutes
+- Cache invalidation on policy version changes
+
+```ts
+const cache = new Map<string, { result: DiscoveryResult; expires: number }>();
+
+async function cachedDiscover(domain: string) {
+  const cached = cache.get(domain);
+  if (cached && cached.expires > Date.now()) return cached.result;
+
+  const result = await discoverPolicy(domain);
+  cache.set(domain, { result, expires: Date.now() + 5 * 60 * 1000 });
+  return result;
+}
+```
+
+## Error Handling
+
+If all discovery methods fail, the result will have `policy: null` and an `error` message:
+
+```ts
+const result = await discoverPolicy("no-policy.example.com");
+// result.policy === null
+// result.error === "No APoP policy found via any discovery method"
+```
+
+## Notes
+
+- Uses Node.js built-in `fetch` (Node 18+) for HTTP requests.
+- Uses `dns/promises` for DNS TXT lookups.
+- Each method has an independent timeout (default 5 seconds).
+- The function is async — always `await` the result.

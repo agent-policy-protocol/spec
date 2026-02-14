@@ -1,0 +1,108 @@
+---
+title: Discovery
+description: Discover APoP policies from any domain using the APoP Python SDK.
+---
+
+# Discovery
+
+The discovery module implements the APoP 4-method discovery chain to find a domain's agent policy.
+
+## Import
+
+```python
+from apop.discovery import discover_policy
+```
+
+## `discover_policy(domain, options?)`
+
+Discover an APoP policy for a given domain. This is an **async** function.
+
+```python
+import asyncio
+from apop.discovery import discover_policy
+
+async def main():
+    result = await discover_policy("example.com")
+
+    if result.policy:
+        print(f"Found via {result.method}: {result.policy_url}")
+        print(f"Version: {result.policy.version}")
+    else:
+        print(f"No policy found: {result.error}")
+
+asyncio.run(main())
+```
+
+### Parameters
+
+| Parameter | Type               | Required | Description                   |
+| --------- | ------------------ | -------- | ----------------------------- |
+| `domain`  | `str`              | Yes      | Domain to discover policy for |
+| `options` | `DiscoveryOptions` | No       | Optional configuration        |
+
+### Returns: `DiscoveryResult`
+
+```python
+@dataclass
+class DiscoveryResult:
+    policy: AgentPolicy | None
+    policy_url: str | None
+    method: str | None   # "well-known", "http-header", "meta-tag", "dns-txt"
+    error: str | None
+```
+
+## Discovery Methods
+
+The discovery chain tries these methods in order:
+
+### 1. Well-Known URI
+
+```
+GET https://{domain}/.well-known/agent-policy.json
+```
+
+### 2. HTTP Header
+
+```
+GET https://{domain}/
+→ Agent-Policy: https://example.com/policy.json
+```
+
+### 3. HTML Meta Tag
+
+```html
+<meta name="agent-policy" content="https://example.com/policy.json" />
+```
+
+### 4. DNS TXT Record
+
+```
+_agent-policy.example.com  TXT  "agent-policy=https://example.com/policy.json"
+```
+
+## With Framework Integration
+
+```python
+from fastapi import FastAPI
+from apop.discovery import discover_policy
+
+app = FastAPI()
+
+@app.get("/check-policy/{domain}")
+async def check_policy(domain: str):
+    result = await discover_policy(domain)
+    if result.policy:
+        return {
+            "found": True,
+            "method": result.method,
+            "version": result.policy.version,
+        }
+    return {"found": False, "error": result.error}
+```
+
+## Notes
+
+- This is an **async** function — use `await` or `asyncio.run()`.
+- Uses `aiohttp` for HTTP requests and `aiodns` for DNS lookups.
+- Each discovery method has an independent timeout.
+- If all methods fail, `policy` is `None` and `error` contains a message.

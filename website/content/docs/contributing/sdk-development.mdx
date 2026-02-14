@@ -1,0 +1,246 @@
+---
+title: SDK Development
+description: How to contribute to the Node.js and Python SDKs.
+---
+
+# SDK Development
+
+This guide covers how to set up a development environment, make changes, and submit contributions to the APoP SDKs.
+
+## Repository Structure
+
+```
+sdk/
+├── node/           # Node.js SDK (@apop/node)
+│   ├── src/
+│   │   ├── index.ts        # Main exports
+│   │   ├── types.ts        # TypeScript types
+│   │   ├── parser.ts       # Policy parsing & validation
+│   │   ├── enforcer.ts     # Request enforcement
+│   │   ├── discovery.ts    # Policy discovery
+│   │   ├── headers.ts      # HTTP header utilities
+│   │   ├── matcher.ts      # Path matching
+│   │   └── middleware/     # Framework middleware
+│   └── tests/
+└── python/         # Python SDK (apop)
+    ├── src/apop/
+    │   ├── __init__.py
+    │   ├── types.py
+    │   ├── parser.py
+    │   ├── enforcer.py
+    │   ├── discovery.py
+    │   ├── headers.py
+    │   ├── matcher.py
+    │   └── middleware/
+    └── tests/
+```
+
+## Node.js SDK
+
+### Setup
+
+```bash
+cd sdk/node
+npm install
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+npx vitest
+
+# Run specific test file
+npx vitest tests/parser.test.ts
+
+# Run in watch mode
+npx vitest --watch
+
+# Coverage report
+npx vitest --coverage
+```
+
+### Building
+
+```bash
+npx tsc --build
+```
+
+### Code Style
+
+- Written in **TypeScript** (strict mode)
+- Uses **ESM** modules exclusively
+- Exports both types and runtime values from `index.ts`
+- All public functions must have JSDoc comments
+- All types must be exported from `types.ts`
+
+### Adding a New Feature
+
+1. **Types first**: Add interfaces/types to `src/types.ts`
+2. **Implementation**: Add the feature in the appropriate module
+3. **Export**: Add the export to `src/index.ts`
+4. **Tests**: Add comprehensive tests in `tests/`
+5. **Docs**: Update `README.md` with usage examples
+
+### Adding Middleware
+
+Create a new file in `src/middleware/`:
+
+```typescript
+// src/middleware/my-framework.ts
+import type { AgentPolicy } from "../types.js";
+import { parsePolicy } from "../parser.js";
+import { enforce } from "../enforcer.js";
+
+export function createMyFrameworkMiddleware(options: {
+  policyPath?: string;
+  policy?: AgentPolicy;
+}) {
+  // Parse policy once at startup
+  const policy = options.policy ?? parsePolicyFile(options.policyPath);
+
+  // Return framework-specific middleware
+  return (req, res, next) => {
+    const result = enforce(policy, {
+      path: req.path,
+      agentId: req.headers["x-agent-id"],
+      intent: req.headers["x-agent-intent"],
+    });
+
+    if (!result.allowed) {
+      res.status(result.statusCode).json(result);
+      return;
+    }
+    next();
+  };
+}
+```
+
+Then export from `src/index.ts`:
+
+```typescript
+export { createMyFrameworkMiddleware } from "./middleware/my-framework.js";
+```
+
+## Python SDK
+
+### Setup
+
+```bash
+cd sdk/python
+pip install -e ".[dev]"
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/test_parser.py
+
+# Verbose output
+pytest -v
+
+# Coverage report
+pytest --cov=apop
+```
+
+### Code Style
+
+- Written for **Python 3.9+**
+- Uses **type hints** throughout
+- Uses **dataclasses** for request/response types
+- Follows **PEP 8** and **PEP 257** (docstrings)
+- Format with `black` and lint with `ruff`
+
+### Adding a New Feature
+
+1. **Types first**: Add types/dataclasses to `src/apop/types.py`
+2. **Implementation**: Add the feature in the appropriate module
+3. **Export**: Add the export to `src/apop/__init__.py`
+4. **Tests**: Add tests in `tests/`
+5. **Docs**: Update `README.md` with usage examples
+
+### Adding Middleware
+
+Create a new file in `src/apop/middleware/`:
+
+```python
+# src/apop/middleware/my_framework.py
+from apop.parser import parse_policy
+from apop.enforcer import enforce
+from apop.types import RequestContext
+
+
+def create_my_framework_middleware(policy_path: str = "agent-policy.json"):
+    """Create middleware for MyFramework."""
+    policy = parse_policy_file(policy_path)
+
+    def middleware(request, response, next_handler):
+        result = enforce(policy, RequestContext(
+            path=request.path,
+            agent_id=request.headers.get("X-Agent-Id"),
+            intent=request.headers.get("X-Agent-Intent"),
+        ))
+
+        if not result.allowed:
+            return response.status(result.status_code).json(result)
+
+        return next_handler()
+
+    return middleware
+```
+
+## General Guidelines
+
+### Commit Messages
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat(node): add Hono middleware
+fix(python): handle missing version field
+docs(node): update parser API reference
+test(python): add edge cases for path matching
+chore: update dependencies
+```
+
+### Pull Request Checklist
+
+Before submitting a PR for SDK changes:
+
+- [ ] All existing tests pass
+- [ ] New tests added for new functionality
+- [ ] TypeScript types updated (Node.js)
+- [ ] Type hints updated (Python)
+- [ ] README updated with usage examples
+- [ ] No breaking changes (or clearly documented)
+- [ ] Lint and format checks pass
+
+### Version Compatibility
+
+Both SDKs must support the current APoP spec version. When spec changes are released:
+
+1. Update types to reflect new schema fields
+2. Update parser to handle new fields
+3. Update enforcer if behavior changes
+4. Add conformance tests
+5. Update documentation
+6. Release with appropriate version bump
+
+### Cross-SDK Parity
+
+Both SDKs should provide equivalent functionality:
+
+| Feature        | Node.js            | Python              |
+| -------------- | ------------------ | ------------------- |
+| Policy parsing | `parsePolicy()`    | `parse_policy()`    |
+| Validation     | `validatePolicy()` | `validate_policy()` |
+| Enforcement    | `enforce()`        | `enforce()`         |
+| Discovery      | `discoverPolicy()` | `discover_policy()` |
+| Headers        | `buildHeaders()`   | `build_headers()`   |
+| Path matching  | `matchPath()`      | `match_path()`      |
+
+If you add a feature to one SDK, please either implement it in both or open an issue for the other SDK.

@@ -1,0 +1,134 @@
+---
+title: Deploy on Cloudflare
+description: Deploy APoP enforcement on Cloudflare Workers or Pages.
+---
+
+# Deploy on Cloudflare
+
+Serve and enforce APoP policies using Cloudflare Workers or Cloudflare Pages.
+
+## Option 1: Cloudflare Pages (Static)
+
+Serve the policy as a static file alongside your site.
+
+### Step 1: Create the Policy
+
+```json title="public/.well-known/agent-policy.json"
+{
+  "$schema": "https://agentpolicy.org/schema/v1/agent-policy.schema.json",
+  "version": "1.0",
+  "policyUrl": "https://yoursite.com/.well-known/agent-policy.json",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "index", "summarize"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  }
+}
+```
+
+### Step 2: Deploy to Cloudflare Pages
+
+```bash
+npx wrangler pages deploy public/
+```
+
+## Option 2: Cloudflare Worker (Edge Enforcement)
+
+Use a Cloudflare Worker for runtime enforcement.
+
+### Step 1: Create the Worker
+
+```ts title="src/index.ts"
+import { enforce, parseRequestHeaders } from "@apop/node";
+
+const policy = {
+  version: "1.0",
+  policyUrl: "https://yoursite.com/.well-known/agent-policy.json",
+  defaultPolicy: {
+    allow: true,
+    actions: ["read", "render"],
+    rateLimit: { requests: 200, window: "hour" },
+  },
+  pathPolicies: [
+    { path: "/admin/*", allow: false },
+    { path: "/api/**", allow: true, requireVerification: true },
+  ],
+};
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    // Serve the policy
+    if (url.pathname === "/.well-known/agent-policy.json") {
+      return new Response(JSON.stringify(policy, null, 2), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Parse agent headers
+    const headers = parseRequestHeaders(Object.fromEntries(request.headers));
+    if (!headers.agentName) {
+      // Not an agent request, pass through
+      return fetch(request);
+    }
+
+    // Enforce the policy
+    const result = enforce(policy, {
+      path: url.pathname,
+      agentName: headers.agentName,
+      agentIntent: headers.agentIntent,
+      agentId: headers.agentId,
+      agentSignature: headers.agentSignature,
+    });
+
+    if (result.status !== "allowed") {
+      return new Response(JSON.stringify(result.body), {
+        status: result.httpStatus,
+        headers: result.headers as Record<string, string>,
+      });
+    }
+
+    // Forward to origin with APoP headers
+    const response = await fetch(request);
+    const modifiedResponse = new Response(response.body, response);
+    Object.entries(result.headers).forEach(([key, value]) => {
+      if (value) modifiedResponse.headers.set(key, value);
+    });
+    return modifiedResponse;
+  },
+};
+```
+
+### Step 2: Configure Wrangler
+
+```toml title="wrangler.toml"
+name = "apop-enforcer"
+main = "src/index.ts"
+compatibility_date = "2026-02-14"
+```
+
+### Step 3: Deploy
+
+```bash
+npx wrangler deploy
+```
+
+## Add Custom Headers
+
+Use Cloudflare's `_headers` file for static policy advertisement:
+
+```text title="public/_headers"
+/*
+  Agent-Policy: https://yoursite.com/.well-known/agent-policy.json
+```
+
+## Verify Deployment
+
+```bash
+curl https://yoursite.com/.well-known/agent-policy.json
+
+curl -H "Agent-Name: TestBot/1.0" \
+     -H "Agent-Intent: read" \
+     https://yoursite.com/
+```

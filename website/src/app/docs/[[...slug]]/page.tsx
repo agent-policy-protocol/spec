@@ -18,7 +18,15 @@ export default async function Page(props: {
   const MDX = page.data.body;
 
   return (
-    <DocsPage toc={page.data.toc}>
+    <DocsPage
+      toc={page.data.toc}
+      editOnGithub={{
+        repo: "spec",
+        owner: "agent-policy-protocol",
+        sha: "main",
+        path: `website/content/docs/${page.path}`,
+      }}
+    >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
