@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CopyButton } from "@/components/copy-button";
 
 const tabs = [
@@ -67,8 +67,83 @@ curl -H "Agent-Name: MyCrawler/1.0" \\
   },
 ];
 
+// Simple syntax highlighting for code snippets
+function highlightCode(code: string, language: string): string {
+  let highlighted = code
+    // Escape HTML
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  if (language === "json") {
+    // Strings
+    highlighted = highlighted.replace(
+      /("[^"]*")\s*:/g,
+      '<span style="color:#7dd3fc">$1</span>:',
+    );
+    highlighted = highlighted.replace(
+      /:\s*("[^"]*")/g,
+      ': <span style="color:#86efac">$1</span>',
+    );
+    // Numbers & booleans
+    highlighted = highlighted.replace(
+      /:\s*(\d+)/g,
+      ': <span style="color:#fbbf24">$1</span>',
+    );
+    highlighted = highlighted.replace(
+      /:\s*(true|false)/g,
+      ': <span style="color:#c084fc">$1</span>',
+    );
+  } else if (language === "javascript" || language === "python") {
+    // Comments
+    highlighted = highlighted.replace(
+      /(#.*$|\/\/.*$)/gm,
+      '<span style="color:#6b7280">$1</span>',
+    );
+    // Strings
+    highlighted = highlighted.replace(
+      /("[^"]*"|'[^']*'|`[^`]*`)/g,
+      '<span style="color:#86efac">$1</span>',
+    );
+    // Keywords
+    highlighted = highlighted.replace(
+      /\b(import|from|export|const|let|var|function|return|if|else|class|new|app|def)\b/g,
+      '<span style="color:#c084fc">$1</span>',
+    );
+  } else if (language === "bash") {
+    // Comments
+    highlighted = highlighted.replace(
+      /(#.*$)/gm,
+      '<span style="color:#6b7280">$1</span>',
+    );
+    // Strings
+    highlighted = highlighted.replace(
+      /("[^"]*")/g,
+      '<span style="color:#86efac">$1</span>',
+    );
+    // Commands
+    highlighted = highlighted.replace(
+      /\b(curl|jq|GET)\b/g,
+      '<span style="color:#7dd3fc">$1</span>',
+    );
+    // Flags
+    highlighted = highlighted.replace(
+      /\s(-[a-zA-Z]+)/g,
+      ' <span style="color:#fbbf24">$1</span>',
+    );
+  }
+
+  return highlighted;
+}
+
 export function CodePreview() {
   const [activeTab, setActiveTab] = useState(0);
+  const [highlightedCode, setHighlightedCode] = useState("");
+
+  useEffect(() => {
+    const tab = tabs[activeTab];
+    setHighlightedCode(highlightCode(tab.code, tab.language));
+  }, [activeTab]);
 
   return (
     <section className="py-16 sm:py-24 bg-white dark:bg-neutral-950">
@@ -107,7 +182,7 @@ export function CodePreview() {
               <CopyButton text={tabs[activeTab].code} />
             </div>
             <pre className="text-sm text-neutral-300 leading-relaxed">
-              <code>{tabs[activeTab].code}</code>
+              <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
             </pre>
           </div>
         </div>

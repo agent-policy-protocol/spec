@@ -1,4 +1,11 @@
 import { Shield, Bot, Gauge, Link2, Globe, FileText } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
 const features = [
   {
@@ -68,22 +75,24 @@ export function Features() {
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <div
+              <Card
                 key={feature.title}
-                className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 hover:shadow-lg transition-shadow"
+                className="border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:shadow-lg transition-shadow"
               >
-                <div
-                  className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${feature.bg} mb-4`}
-                >
-                  <Icon className={`h-5 w-5 ${feature.color}`} />
-                </div>
-                <h3 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
+                <CardHeader>
+                  <div
+                    className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${feature.bg}`}
+                  >
+                    <Icon className={`h-5 w-5 ${feature.color}`} />
+                  </div>
+                  <CardTitle className="text-lg text-neutral-900 dark:text-white">
+                    {feature.title}
+                  </CardTitle>
+                  <CardDescription className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                    {feature.description}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
             );
           })}
         </div>
