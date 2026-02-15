@@ -46,24 +46,32 @@ APOP_POLICY_FILE = BASE_DIR / "agent-policy.json"
 }
 ```
 
-### 3. Add a discovery URL (optional)
+### 3. Serve the policy (optional)
+
+Place `agent-policy.json` in your static files or serve it via a view:
 
 ```python title="urls.py"
 from django.urls import path
-from apop.middleware.django import agent_policy_view
+from django.views.static import serve
+from django.conf import settings
 
 urlpatterns = [
     # ...
-    path(".well-known/agent-policy.json", agent_policy_view),
+    path(".well-known/agent-policy.json",
+         serve,
+         {"document_root": settings.BASE_DIR, "path": "agent-policy.json"}),
 ]
 ```
 
 ## Configuration
 
-| Setting                | Type         | Default | Description                             |
-| ---------------------- | ------------ | ------- | --------------------------------------- |
-| `APOP_POLICY_FILE`     | `Path / str` | —       | Path to the policy JSON file            |
-| `APOP_SKIP_NON_AGENTS` | `bool`       | `True`  | Skip enforcement for non-agent requests |
+| Setting                | Type         | Default | Description                              |
+| ---------------------- | ------------ | ------- | ---------------------------------------- |
+| `APOP_POLICY_FILE`     | `Path / str` | —       | Path to the policy JSON file             |
+| `APOP_POLICY`          | `dict`       | —       | Inline policy dict (alternative to file) |
+| `APOP_SKIP_NON_AGENTS` | `bool`       | `True`  | Skip enforcement for non-agent requests  |
+
+One of `APOP_POLICY_FILE` or `APOP_POLICY` is required.
 
 ## How It Works
 
@@ -93,12 +101,17 @@ urlpatterns = [
 ### View-Based Approach
 
 ```python title="views.py"
+import json
 from django.http import JsonResponse
 from apop.parser import parse_policy_file
 
 def agent_policy_view(request):
     result = parse_policy_file("agent-policy.json")
-    return JsonResponse(result.policy.to_dict() if result.valid else {})
+    if result.valid and result.policy:
+        # Serialize the policy dataclass to a dict
+        from dataclasses import asdict
+        return JsonResponse(asdict(result.policy))
+    return JsonResponse({})
 ```
 
 ## Testing

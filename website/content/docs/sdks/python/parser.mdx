@@ -51,8 +51,8 @@ else:
 @dataclass
 class ParseResult:
     valid: bool
-    policy: AgentPolicy | None
-    errors: list[ValidationError]
+    policy: Optional[AgentPolicy] = None
+    errors: Optional[list[ValidationError]] = None
 
 @dataclass
 class ValidationError:

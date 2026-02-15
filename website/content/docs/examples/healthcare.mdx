@@ -92,7 +92,7 @@ A policy template for healthcare organizations that need HIPAA-compliant agent p
     "abuseUrl": "https://hospital.example.com/report-violation"
   },
   "metadata": {
-    "description": "HIPAA-sensitive healthcare policy: deny all by default, patient/records paths fully blocked, only allowlisted verified agents may book appointments.",
+    "description": "HIPAA-sensitive healthcare policy: deny all by default, patient/records paths fully blocked, only allowlisted verified agents may book appointments. Public info (hours, locations) readable without verification.",
     "owner": "Example Hospital System",
     "lastModified": "2026-02-14T00:00:00Z",
     "license": "Apache-2.0"
@@ -121,3 +121,7 @@ The `/public/**` path allows reading and indexing of non-sensitive content like 
 ### HIPAA Compliance
 
 The policy requires Verifiable Credentials from `did:web:hipaa-compliance.hhs.gov`, ensuring that only agents with provable HIPAA compliance credentials can access sensitive functionality.
+
+---
+
+[Try this policy in the Playground →](/playground)

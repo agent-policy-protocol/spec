@@ -63,14 +63,13 @@ Both SDKs follow the same modular architecture:
 
 ```javascript
 import express from "express";
-import { createAgentPolicyMiddleware } from "@apop/node/middleware/express";
+import { createExpressMiddleware } from "@apop/node/middleware/express";
+import { parsePolicyFile } from "@apop/node";
 
 const app = express();
-app.use(
-  createAgentPolicyMiddleware({
-    policyPath: "./.well-known/agent-policy.json",
-  }),
-);
+const { policy } = await parsePolicyFile("./.well-known/agent-policy.json");
+
+app.use(createExpressMiddleware({ policy }));
 
 app.get("/api/data", (req, res) => {
   res.json({ message: "This endpoint is protected by APoP" });

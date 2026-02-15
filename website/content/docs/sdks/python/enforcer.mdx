@@ -14,7 +14,7 @@ from apop.enforcer import enforce
 from apop.types import RequestContext, EnforcementResult
 ```
 
-## `enforce(policy, context)`
+## `enforce(policy, ctx)`
 
 Evaluate a request against the policy and return an enforcement result.
 
@@ -55,7 +55,7 @@ print(decision.headers)      # {"Agent-Policy-Status": "allowed", ...}
 | Parameter | Type             | Required | Description              |
 | --------- | ---------------- | -------- | ------------------------ |
 | `policy`  | `AgentPolicy`    | Yes      | Parsed policy object     |
-| `context` | `RequestContext` | Yes      | Incoming request context |
+| `ctx`     | `RequestContext` | Yes      | Incoming request context |
 
 ### `RequestContext`
 

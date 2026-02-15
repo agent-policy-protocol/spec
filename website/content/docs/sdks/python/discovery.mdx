@@ -40,6 +40,17 @@ asyncio.run(main())
 | `domain`  | `str`              | Yes      | Domain to discover policy for |
 | `options` | `DiscoveryOptions` | No       | Optional configuration        |
 
+### `DiscoveryOptions`
+
+```python
+@dataclass
+class DiscoveryOptions:
+    timeout: float = 10.0                # Request timeout in seconds (default: 10s)
+    max_retries: int = 3                 # Max retries for 5xx errors (default: 3)
+    http_client: Optional[httpx.AsyncClient] = None  # Custom HTTP client (for testing)
+    dns_resolve: Optional[Callable] = None            # Custom DNS resolver (for testing)
+```
+
 ### Returns: `DiscoveryResult`
 
 ```python
@@ -77,7 +88,7 @@ GET https://{domain}/
 ### 4. DNS TXT Record
 
 ```
-_agent-policy.example.com  TXT  "agent-policy=https://example.com/policy.json"
+_agentpolicy.example.com  TXT  "apop=1 policy=https://example.com/.well-known/agent-policy.json"
 ```
 
 ## With Framework Integration
@@ -103,6 +114,6 @@ async def check_policy(domain: str):
 ## Notes
 
 - This is an **async** function — use `await` or `asyncio.run()`.
-- Uses `aiohttp` for HTTP requests and `aiodns` for DNS lookups.
+- Uses `httpx` for HTTP requests and `dnspython` for DNS lookups.
 - Each discovery method has an independent timeout.
 - If all methods fail, `policy` is `None` and `error` contains a message.

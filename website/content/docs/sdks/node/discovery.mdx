@@ -43,7 +43,14 @@ if (result.policy) {
 
 ```ts
 interface DiscoveryOptions {
-  timeout?: number; // Request timeout in ms (default: 5000)
+  /** Request timeout in milliseconds. Default: 10000 (10s). */
+  timeout?: number;
+  /** Maximum retries for 5xx errors on well-known URI. Default: 3. */
+  maxRetries?: number;
+  /** Custom fetch implementation (for testing). Defaults to global fetch. */
+  fetchImpl?: typeof globalThis.fetch;
+  /** Custom DNS resolver (for testing). Defaults to dns/promises. */
+  dnsResolve?: (hostname: string, rrtype: string) => Promise<string[][]>;
 }
 ```
 
@@ -90,10 +97,10 @@ The SDK parses the HTML response from the domain's homepage looking for an `agen
 ### 4. DNS TXT Record
 
 ```
-_agent-policy.example.com  TXT  "agent-policy=https://example.com/policy.json"
+_agentpolicy.example.com  TXT  "apop=1 policy=https://example.com/.well-known/agent-policy.json"
 ```
 
-As a final fallback, the SDK queries DNS TXT records for the `_agent-policy` subdomain.
+As a final fallback, the SDK queries DNS TXT records for the `_agentpolicy` subdomain. The TXT record must contain `apop=1` and `policy={url}`.
 
 ## Caching
 
@@ -123,12 +130,12 @@ If all discovery methods fail, the result will have `policy: null` and an `error
 ```ts
 const result = await discoverPolicy("no-policy.example.com");
 // result.policy === null
-// result.error === "No APoP policy found via any discovery method"
+// result.error === "No APoP policy found for domain: no-policy.example.com"
 ```
 
 ## Notes
 
 - Uses Node.js built-in `fetch` (Node 18+) for HTTP requests.
 - Uses `dns/promises` for DNS TXT lookups.
-- Each method has an independent timeout (default 5 seconds).
+- Each method has an independent timeout (default 10 seconds).
 - The function is async — always `await` the result.

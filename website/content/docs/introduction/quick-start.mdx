@@ -57,7 +57,8 @@ curl -H "Agent-Name: MyBot/1.0" \
 
 ## Step 4: Add Middleware (Optional)
 
-### Node.js (Express)
+<Tabs items={["Node.js (Express)", "Python (FastAPI)"]}>
+  <Tab>
 
 ```bash
 npm install @apop/node
@@ -65,17 +66,17 @@ npm install @apop/node
 
 ```javascript
 import express from "express";
-import { createAgentPolicyMiddleware } from "@apop/node/middleware/express";
+import { createExpressMiddleware } from "@apop/node/middleware/express";
+import { parsePolicyFile } from "@apop/node";
 
 const app = express();
-app.use(
-  createAgentPolicyMiddleware({
-    policyPath: "./.well-known/agent-policy.json",
-  }),
-);
+const { policy } = await parsePolicyFile("./.well-known/agent-policy.json");
+
+app.use(createExpressMiddleware({ policy }));
 ```
 
-### Python (FastAPI)
+  </Tab>
+  <Tab>
 
 ```bash
 pip install apop
@@ -91,6 +92,9 @@ app.add_middleware(
     policy_path=".well-known/agent-policy.json",
 )
 ```
+
+  </Tab>
+</Tabs>
 
 ## Next Steps
 

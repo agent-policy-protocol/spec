@@ -55,8 +55,8 @@ if (result.valid) {
 ```ts
 interface ParseResult {
   valid: boolean;
-  policy: AgentPolicy | null;
-  errors: ValidationError[];
+  policy?: AgentPolicy;
+  errors?: ValidationError[];
 }
 
 interface ValidationError {
