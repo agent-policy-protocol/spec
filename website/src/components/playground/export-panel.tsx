@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Copy, Download, Terminal, Share2, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface ExportPanelProps {
   code: string;
@@ -81,18 +83,18 @@ export function ExportPanel({ code }: ExportPanelProps) {
   ];
 
   return (
-    <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
-      <div className="px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
-        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-          Export
-        </span>
-      </div>
-      <div className="p-3 grid grid-cols-2 gap-2">
+    <Card className="py-0 gap-0">
+      <CardHeader className="px-4 py-3 border-b">
+        <CardTitle className="text-sm">Export</CardTitle>
+      </CardHeader>
+      <CardContent className="p-3 grid grid-cols-2 gap-2">
         {buttons.map((btn) => (
-          <button
+          <Button
             key={btn.key}
+            variant="outline"
+            size="sm"
             onClick={btn.action}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+            className="gap-1.5 text-xs"
           >
             {copiedState === btn.key ? (
               <Check className="h-3.5 w-3.5 text-green-600" />
@@ -100,9 +102,9 @@ export function ExportPanel({ code }: ExportPanelProps) {
               <btn.icon className="h-3.5 w-3.5" />
             )}
             {copiedState === btn.key ? "Copied!" : btn.label}
-          </button>
+          </Button>
         ))}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

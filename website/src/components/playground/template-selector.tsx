@@ -2,6 +2,25 @@
 
 import { useState } from "react";
 import { ChevronDown, FileJson } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Inline the example templates to avoid bundling issues
 const templates: Record<
@@ -210,45 +229,70 @@ interface TemplateSelectorProps {
 }
 
 export function TemplateSelector({ onLoad }: TemplateSelectorProps) {
-  const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingKey, setPendingKey] = useState<string | null>(null);
 
   const handleSelect = (key: string) => {
-    const template = templates[key];
-    if (template) {
-      onLoad(JSON.stringify(template.json, null, 2));
+    // Always ask for confirmation in case editor has been modified
+    setPendingKey(key);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (pendingKey) {
+      const template = templates[pendingKey];
+      if (template) {
+        onLoad(JSON.stringify(template.json, null, 2));
+      }
     }
-    setOpen(false);
+    setConfirmOpen(false);
+    setPendingKey(null);
+  };
+
+  const handleCancel = () => {
+    setConfirmOpen(false);
+    setPendingKey(null);
   };
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-      >
-        <FileJson className="h-4 w-4" />
-        Load Template
-        <ChevronDown
-          className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">
+            <FileJson className="h-4 w-4" />
+            Load Template
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-56">
+          <DropdownMenuLabel>Policy Templates</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {Object.entries(templates).map(([key, template]) => (
+            <DropdownMenuItem key={key} onClick={() => handleSelect(key)}>
+              {template.name}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 z-20 mt-1 w-64 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg py-1">
-            {Object.entries(templates).map(([key, template]) => (
-              <button
-                key={key}
-                onClick={() => handleSelect(key)}
-                className="w-full text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              >
-                {template.name}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Replace editor content?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Loading the &ldquo;{pendingKey ? templates[pendingKey]?.name : ""}
+              &rdquo; template will replace your current editor content. This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancel}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm}>
+              Load Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { PostHeader } from "@/components/blog/post-header";
+import { ShareButtons } from "@/components/blog/share-buttons";
+import { Separator } from "@/components/ui/separator";
 import { getBlogPost, getBlogPosts } from "@/lib/blog";
 
 export async function generateStaticParams() {
@@ -67,6 +69,11 @@ export default async function BlogPostPage(props: {
           <div className="prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-mt-20 prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-code:before:content-none prose-code:after:content-none">
             <MDX />
           </div>
+          <Separator className="my-8" />
+          <ShareButtons
+            title={post.title}
+            url={`https://agentpolicy.org/blog/${post.slug}`}
+          />
         </article>
       </main>
       <Footer />

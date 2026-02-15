@@ -1,6 +1,8 @@
 import { Calendar, Clock, ArrowLeft, Tag } from "lucide-react";
 import Link from "next/link";
-import { ShareButtons } from "./share-buttons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface PostHeaderProps {
   title: string;
@@ -24,29 +26,25 @@ export function PostHeader({
   author,
   readingTime,
   tags,
-  slug,
 }: PostHeaderProps) {
   return (
     <div className="mb-8">
-      <Link
-        href="/blog"
-        className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to blog
-      </Link>
+      <Button variant="ghost" size="sm" asChild className="mb-6 -ml-2">
+        <Link href="/blog">
+          <ArrowLeft className="h-4 w-4" />
+          Back to blog
+        </Link>
+      </Button>
 
-      <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
+      <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
         {title}
       </h1>
 
       {description && (
-        <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-6">
-          {description}
-        </p>
+        <p className="text-lg text-muted-foreground mb-6">{description}</p>
       )}
 
-      <div className="flex flex-wrap items-center gap-4 text-sm text-neutral-500 dark:text-neutral-400 mb-4">
+      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
         {author && (
           <div className="flex items-center gap-2">
             {author.avatar && (
@@ -60,19 +58,17 @@ export function PostHeader({
                   href={author.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-neutral-700 dark:text-neutral-300 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+                  className="font-medium text-foreground hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
                 >
                   {author.name}
                 </a>
               ) : (
-                <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                <span className="font-medium text-foreground">
                   {author.name}
                 </span>
               )}
               {author.title && (
-                <p className="text-xs text-neutral-500 dark:text-neutral-500">
-                  {author.title}
-                </p>
+                <p className="text-xs text-muted-foreground">{author.title}</p>
               )}
             </div>
           </div>
@@ -96,23 +92,15 @@ export function PostHeader({
       {tags && tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-6">
           {tags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300"
-            >
+            <Badge key={tag} variant="secondary" className="gap-1">
               <Tag className="h-3 w-3" />
               {tag}
-            </span>
+            </Badge>
           ))}
         </div>
       )}
 
-      <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4">
-        <ShareButtons
-          title={title}
-          url={`https://agentpolicy.org/blog/${slug}`}
-        />
-      </div>
+      <Separator />
     </div>
   );
 }
