@@ -1,6 +1,6 @@
 ---
-title: "Protect Your Website from AI Agents in 5 Minutes"
-description: "A step-by-step guide to creating and deploying an agent-policy.json file to control how AI agents interact with your website."
+title: "Set Clear Rules for AI Agents in 5 Minutes"
+description: "A step-by-step guide to creating and deploying an agent-policy.json file — giving AI agents transparent rules for engaging with your website."
 date: "2026-02-12"
 author:
   name: "Arun Vijayarengan"
@@ -10,7 +10,7 @@ author:
 tags: ["tutorial", "getting-started"]
 ---
 
-AI agents are already visiting your website. They're summarizing your content, extracting your data, and in some cases, taking actions you never authorized. The good news: you can take control in under 5 minutes.
+AI agents are already visiting your website. They're reading content, summarizing articles, and interacting on behalf of users. The good news: you can define clear, transparent rules for how they engage — in under 5 minutes.
 
 ## Step 1: Create Your Policy
 
@@ -21,10 +21,10 @@ Create a file called `agent-policy.json`:
   "apopVersion": "1.0",
   "policyVersion": "1.0.0",
   "defaultPolicy": {
-    "allowedActions": ["read", "navigate"],
-    "disallowedActions": ["summarize", "extract", "train", "execute"],
+    "allowedActions": ["read", "navigate", "summarize"],
+    "disallowedActions": ["train", "execute"],
     "rateLimit": {
-      "maxRequests": 60,
+      "maxRequests": 100,
       "windowSeconds": 60
     }
   },
@@ -36,7 +36,7 @@ Create a file called `agent-policy.json`:
 }
 ```
 
-This policy says: agents can read your pages and follow links, but they **cannot** summarize your content, extract data, use it for training, or execute actions. They're limited to 60 requests per minute.
+This policy says: agents can read your pages, follow links, and summarize content. They're limited to 100 requests per minute. Training and executing actions require separate permission.
 
 Don't want to write JSON by hand? **[Use the playground →](/playground)** to build your policy visually.
 
@@ -127,23 +127,23 @@ Content-Type: application/json
 
 **Status 430** is APoP's custom HTTP status code — it tells the agent exactly why access was denied and where to find the policy.
 
-## What About Agents That Don't Respect the Policy?
+## What About Agents That Don't Check the Policy?
 
-This is the right question. APoP works on two levels:
+This is a fair question. APoP works on two levels:
 
-1. **Cooperative agents** (most commercial AI agents) — they discover and respect policies because it's in their interest. Violating policies risks being blocked entirely.
+1. **Cooperative agents** (most commercial AI agents) — they discover and respect policies because clear rules let them build better products with legal confidence. Violating policies risks losing access entirely.
 
-2. **Non-cooperative agents** — the middleware actively enforces policies by inspecting headers and returning 430 responses. Combined with rate limiting, this provides real protection.
+2. **Middleware enforcement** — the APoP middleware actively enforces policies by inspecting headers and returning 430 responses. Combined with rate limiting, this ensures consistent enforcement.
 
-As APoP adoption grows, major AI providers (Google, Anthropic, OpenAI) will have market pressure to respect these policies — just as they currently respect `robots.txt`.
+As APoP adoption grows, major AI providers (Google, Anthropic, OpenAI) will have market incentive to respect these policies — just as they currently respect `robots.txt`.
 
 ## Next Steps
 
-You've protected your site. Here's what to explore next:
+You've set clear rules for your site. Here's what to explore next:
 
 - **[Path-specific policies](/docs/specification/overview)** — different rules for different sections
-- **[Agent verification](/docs/specification/agent-identification)** — require cryptographic identity
+- **[Agent verification](/docs/specification/agent-identification)** — verified agent identity builds trust
 - **[9 policy templates](/docs/examples/news-publisher)** — pre-built policies for common use cases
 - **[Join the community](/community)** — help shape the standard
 
-The agentic web is here. Make sure your website has a voice in how agents interact with it.
+The agentic web is here. Clear rules make it work for everyone.

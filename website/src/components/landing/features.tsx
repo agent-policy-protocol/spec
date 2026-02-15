@@ -10,9 +10,9 @@ import {
 const features = [
   {
     icon: Shield,
-    title: "Fine-Grained Access Control",
+    title: "Transparent Access Rules",
     description:
-      "Allow/deny by path, action, and agent identity. Control exactly what agents can do on your site.",
+      "Define clear permissions by path, action, and agent identity. Give agents the clarity they need to interact confidently.",
     color: "text-blue-600 dark:text-blue-400",
     bg: "bg-blue-50 dark:bg-blue-950",
   },
@@ -67,7 +67,8 @@ export function Features() {
             Key Features
           </h2>
           <p className="mt-4 text-lg text-neutral-600 dark:text-neutral-300">
-            Everything you need to govern AI agent access to your web content.
+            Everything you need to enable clear, transparent AI agent
+            interactions with your web content.
           </p>
         </div>
 

@@ -14,8 +14,8 @@ export function ProblemStatement() {
           </h2>
           <p className="mt-6 text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">
             AI agents are browsing, summarizing, and transacting on the web —
-            but websites have no standardized way to express consent or control.
-            APoP brings{" "}
+            but without clear rules, both sides face legal uncertainty. APoP
+            brings{" "}
             <span className="font-semibold text-neutral-900 dark:text-white">
               robots.txt-level simplicity
             </span>{" "}
@@ -29,11 +29,11 @@ export function ProblemStatement() {
                 Without APoP
               </h3>
               <ul className="space-y-2 text-sm text-red-600 dark:text-red-300">
-                <li>• Agents scrape blindly with no consent</li>
-                <li>• No standard way to express access rules</li>
+                <li>• No shared rules — agents guess what&apos;s allowed</li>
+                <li>• Legal uncertainty slows innovation on both sides</li>
                 <li>• robots.txt can&apos;t express intent or verification</li>
-                <li>• No rate limiting or action control</li>
-                <li>• No agent identity or accountability</li>
+                <li>• No standard for rate limits or action permissions</li>
+                <li>• No way for agents to prove their identity</li>
               </ul>
             </div>
             <div className="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/50 p-6 text-left">
@@ -41,10 +41,10 @@ export function ProblemStatement() {
                 With APoP
               </h3>
               <ul className="space-y-2 text-sm text-emerald-600 dark:text-emerald-300">
-                <li>• Declare actions agents may perform</li>
-                <li>• Per-path, per-agent access control</li>
-                <li>• Verify agent identity cryptographically</li>
-                <li>• Enforce rate limits with standard headers</li>
+                <li>• Clear rules — agents know what&apos;s allowed</li>
+                <li>• Per-path, per-agent transparent permissions</li>
+                <li>• Verified agent identity builds trust</li>
+                <li>• Standard rate limits enable fair access</li>
                 <li>• Cross-protocol interop (MCP, A2A, WebMCP)</li>
               </ul>
             </div>
@@ -96,7 +96,7 @@ Agent-Intent: read, summarize`,
             How It Works
           </h2>
           <p className="mt-4 text-lg text-neutral-600 dark:text-neutral-300">
-            Three steps to protect your website from ungoverned AI access.
+            Three steps to set clear rules for AI agents on your website.
           </p>
         </div>
 
