@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Ajv from "ajv";
+import Ajv2020 from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const ajv = new Ajv({ allErrors: true, strict: false });
+    const ajv = new Ajv2020({ allErrors: true, strict: false });
     addFormats(ajv);
 
     const schema = getSchema();

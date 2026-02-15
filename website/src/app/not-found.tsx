@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { NotFoundSearch } from "@/components/not-found-search";
 import { Shield, Home, BookOpen, Newspaper, Terminal } from "lucide-react";
 
 export default function NotFound() {
@@ -26,35 +28,33 @@ export default function NotFound() {
           </p>
 
           <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
-            <Link
-              href="/"
-              className="flex items-center justify-center gap-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <Home className="h-4 w-4" />
-              Home
-            </Link>
-            <Link
-              href="/docs"
-              className="flex items-center justify-center gap-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <BookOpen className="h-4 w-4" />
-              Docs
-            </Link>
-            <Link
-              href="/blog"
-              className="flex items-center justify-center gap-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <Newspaper className="h-4 w-4" />
-              Blog
-            </Link>
-            <Link
-              href="/playground"
-              className="flex items-center justify-center gap-2 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
-            >
-              <Terminal className="h-4 w-4" />
-              Playground
-            </Link>
+            <Button variant="outline" asChild>
+              <Link href="/">
+                <Home className="h-4 w-4" />
+                Home
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/docs">
+                <BookOpen className="h-4 w-4" />
+                Docs
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/blog">
+                <Newspaper className="h-4 w-4" />
+                Blog
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/playground">
+                <Terminal className="h-4 w-4" />
+                Playground
+              </Link>
+            </Button>
           </div>
+
+          <NotFoundSearch />
         </div>
       </main>
       <Footer />

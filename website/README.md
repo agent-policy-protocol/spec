@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# APoP Website — agentpolicy.org
+
+The official website for the **Agent Policy Protocol (APoP)** — an open standard that lets websites declare how AI agents can access and interact with their content.
+
+Live at [agentpolicy.org](https://agentpolicy.org).
+
+## Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org) (App Router, React 19)
+- **Docs Engine**: [Fumadocs](https://fumadocs.vercel.app) (MDX-based, full-text search)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com) (New York)
+- **Code Editor**: [Monaco Editor](https://microsoft.github.io/monaco-editor) (playground)
+- **Analytics**: [Vercel Analytics](https://vercel.com/analytics) + [Speed Insights](https://vercel.com/docs/speed-insights)
+- **Deployment**: [Vercel](https://vercel.com)
+- **Language**: TypeScript
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Sync spec files (from ../spec/ to docs content)
+pnpm sync-spec
+
+# Start dev server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the site.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+website/
+├── content/          # MDX content (docs + blog)
+│   ├── docs/         # Documentation pages
+│   └── blog/         # Blog posts
+├── public/           # Static assets
+│   └── schema/       # JSON Schema (v1)
+├── scripts/          # Build scripts (sync-spec)
+├── src/
+│   ├── app/          # Next.js App Router pages
+│   │   ├── api/      # API routes (search, validate, OG)
+│   │   ├── blog/     # Blog pages
+│   │   ├── community/# Community page
+│   │   ├── docs/     # Docs layout + pages
+│   │   ├── playground/# Interactive playground
+│   │   └── privacy/  # Privacy policy
+│   ├── components/   # React components
+│   │   ├── landing/  # Landing page sections
+│   │   └── ui/       # shadcn/ui components
+│   └── lib/          # Utilities + content source
+└── .github/workflows/# CI (lint + build)
+```
 
-## Learn More
+## Available Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Script           | Description                                     |
+| ---------------- | ----------------------------------------------- |
+| `pnpm dev`       | Start development server                        |
+| `pnpm build`     | Production build                                |
+| `pnpm start`     | Start production server                         |
+| `pnpm lint`      | Run ESLint                                      |
+| `pnpm sync-spec` | Sync spec files from `../spec/` to docs content |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+See the [Contributing Guide](https://agentpolicy.org/docs/contributing/how-to-contribute) for details on how to contribute to the APoP project.
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Apache 2.0 — see [LICENSE](../LICENSE) for details.

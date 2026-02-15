@@ -3,6 +3,14 @@ import Link from "next/link";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
   Github,
   MessageCircle,
   MessagesSquare,
@@ -114,8 +122,8 @@ export default function CommunityPage() {
       <Header />
       <main className="min-h-screen">
         {/* Hero */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 via-white to-white dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900 pt-20 pb-16 sm:pt-28 sm:pb-20">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30" />
+        <section className="relative overflow-hidden bg-linear-to-b from-blue-50 via-white to-white dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900 pt-20 pb-16 sm:pt-28 sm:pb-20">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f2937_1px,transparent_1px),linear-gradient(to_bottom,#1f2937_1px,transparent_1px)] bg-size-[4rem_4rem] opacity-30" />
           <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-neutral-900 dark:text-white">
               Join the APoP Community
@@ -132,26 +140,24 @@ export default function CommunityPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {communityCards.map((card) => {
                 const Icon = card.icon;
-                const cardClass =
-                  "group relative rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 shadow-sm hover:shadow-md hover:border-neutral-300 dark:hover:border-neutral-700 transition-all";
 
-                const content = (
-                  <>
-                    <div
-                      className={`inline-flex items-center justify-center rounded-lg ${card.bg} p-3 mb-4`}
-                    >
-                      <Icon className={`h-6 w-6 ${card.color}`} />
-                    </div>
-                    <h3 className="text-lg font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-                      {card.title}
-                      {card.external && (
-                        <ExternalLink className="h-3.5 w-3.5 text-neutral-400" />
-                      )}
-                    </h3>
-                    <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-                      {card.description}
-                    </p>
-                  </>
+                const cardInner = (
+                  <Card className="group hover:shadow-md hover:border-neutral-300 dark:hover:border-neutral-700 transition-all h-full">
+                    <CardHeader>
+                      <div
+                        className={`inline-flex items-center justify-center rounded-lg ${card.bg} p-3 w-fit`}
+                      >
+                        <Icon className={`h-6 w-6 ${card.color}`} />
+                      </div>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        {card.title}
+                        {card.external && (
+                          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </CardTitle>
+                      <CardDescription>{card.description}</CardDescription>
+                    </CardHeader>
+                  </Card>
                 );
 
                 if (card.external) {
@@ -161,16 +167,16 @@ export default function CommunityPage() {
                       href={card.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={cardClass}
+                      className="block"
                     >
-                      {content}
+                      {cardInner}
                     </a>
                   );
                 }
 
                 return (
-                  <Link key={card.title} href={card.href} className={cardClass}>
-                    {content}
+                  <Link key={card.title} href={card.href} className="block">
+                    {cardInner}
                   </Link>
                 );
               })}
@@ -195,25 +201,26 @@ export default function CommunityPage() {
 
             <div className="space-y-4">
               {roadmapItems.map((item, index) => (
-                <div
+                <Card
                   key={item.title}
-                  className="flex items-start gap-4 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-5"
+                  className="flex-row items-start gap-4 p-5"
                 >
-                  <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-sm font-bold">
+                  <div className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-sm font-bold">
                     {index + 1}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-neutral-900 dark:text-white">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base">{item.title}</CardTitle>
+                    <CardDescription className="mt-1">
                       {item.description}
-                    </p>
+                    </CardDescription>
                   </div>
-                  <span className="ml-auto flex-shrink-0 inline-flex items-center rounded-full border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+                  <Badge
+                    variant="outline"
+                    className="ml-auto shrink-0 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950 text-amber-700 dark:text-amber-300"
+                  >
                     Planned
-                  </span>
-                </div>
+                  </Badge>
+                </Card>
               ))}
             </div>
           </div>
