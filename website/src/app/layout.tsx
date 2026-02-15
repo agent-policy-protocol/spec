@@ -1,18 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { JetBrains_Mono, Outfit, Inter } from "next/font/google";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -22,7 +30,7 @@ export const metadata: Metadata = {
     template: "%s | APoP",
   },
   description:
-    "An open standard that lets websites declare how AI agents can access and interact with their content.",
+    "An open standard creating mutual clarity between AI agents and websites — enabling the agentic web with verified identity, transparent permissions, and rate limits.",
   metadataBase: new URL("https://agentpolicy.org"),
   openGraph: {
     type: "website",
@@ -30,7 +38,7 @@ export const metadata: Metadata = {
     url: "https://agentpolicy.org",
     title: "Agent Policy Protocol (APoP)",
     description:
-      "An open standard that lets websites declare how AI agents can access and interact with their content.",
+      "An open standard creating mutual clarity between AI agents and websites — enabling the agentic web with verified identity, transparent permissions, and rate limits.",
     siteName: "Agent Policy Protocol",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
@@ -38,7 +46,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Agent Policy Protocol (APoP)",
     description:
-      "An open standard that lets websites declare how AI agents can access and interact with their content.",
+      "An open standard creating mutual clarity between AI agents and websites — enabling the agentic web.",
   },
   robots: {
     index: true,
@@ -81,7 +89,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${outfit.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <RootProvider>{children}</RootProvider>
         <Analytics />

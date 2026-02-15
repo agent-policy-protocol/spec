@@ -30,6 +30,13 @@ export const blog = defineCollections({
 
 export default defineConfig({
   mdxOptions: {
-    // MDX options here
+    rehypeCodeOptions: {
+      themes: {
+        light: "github-light",
+        dark: "github-dark",
+      },
+      defaultLanguage: "plaintext",
+      defaultColor: false,
+    },
   },
 });

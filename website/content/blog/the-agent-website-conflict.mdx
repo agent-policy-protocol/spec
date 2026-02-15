@@ -1,0 +1,331 @@
+---
+title: "The Agent-Website Conflict: Why We Need Standards Now"
+description: "From Amazon's lawsuit against Perplexity to Google blocking Comet, the friction between AI agents and websites is escalating. Here's why APoP is the robots.txt moment for the agentic web."
+date: "2026-02-15"
+author:
+  name: "Arun Vijayarengan"
+  title: "Founder & CEO, Superdom AI"
+  url: "https://www.linkedin.com/in/arunvijayarengan"
+  avatar: "/authors/arun.jpg"
+tags: ["analysis", "case-study", "industry"]
+---
+
+The conflict between AI agents and websites has reached a breaking point. What started as isolated incidents has become a pattern of legal battles, defensive blocking, and broken user experiences. We're witnessing the early stages of a fundamental infrastructure crisis — and we have a narrow window to solve it before it fractures the web.
+
+## The Incidents That Changed Everything
+
+### November 2025: Amazon Sues Perplexity AI
+
+Amazon filed a lawsuit against Perplexity AI, demanding they shut down Comet — their AI shopping assistant. The charge? Computer fraud.
+
+Amazon's claim was specific: Comet disguised itself as human traffic, bypassing their systems without proper disclosure. Their security teams couldn't distinguish between legitimate users and AI agents. Their infrastructure was being accessed in ways they never consented to. And critically, **there was no standard way for them to communicate boundaries or for Comet to prove its identity.**
+
+The lawsuit wasn't about blocking innovation. It was about clarity, consent, and control — none of which existed in standardized form.
+
+### September 2025: Google Blocks Comet
+
+Two months earlier, Google had taken a different approach: they simply blocked Comet.
+
+Users trying to access Google Ads and Analytics through the assistant found themselves locked out. Google's security systems flagged Comet as a potential scraping bot. Without a way to verify Comet's identity or understand its intent, Google did what any platform would do when faced with ambiguous bot traffic — they blocked it entirely.
+
+Legitimate users were caught in the crossfire. The very people who trusted Comet to help them manage campaigns lost access. Not because they violated any policy, but because **the web had no infrastructure for transparent agent behavior.**
+
+### The Pattern Emerges
+
+These weren't isolated incidents. They were early indicators of systemic friction:
+
+- **Websites can't communicate policies** — beyond crude allow/deny rules in `robots.txt`
+- **Agents can't prove identity** — no standard verification mechanism exists
+- **Security systems can't differentiate** — legitimate assistants look like malicious bots
+- **Users lose access** — platforms block defensively, agents disguise themselves reactively
+
+Every day this pattern repeats across thousands of interactions. Most don't make headlines. But the accumulated friction is slowing innovation, degrading trust, and pushing us toward a bifurcated web.
+
+## The Missing Standard: A robots.txt Moment
+
+This isn't the first time the web has faced this problem.
+
+### 1994: The Original Bot Crisis
+
+When search engines emerged in the 1990s, the web had no way to tell crawlers what they could and couldn't index. The consequences were immediate:
+
+- Websites overwhelmed by bot traffic
+- Servers crashing under load
+- Content scraped without permission
+- No way to opt out or set boundaries
+
+Then in 1994, **Martijn Koster created robots.txt** — a simple text file that let websites communicate with crawlers. One standard solved the chaos.
+
+It wasn't perfect. It relied on voluntary compliance. It couldn't handle nuanced rules. But it worked because it gave both sides a shared language.
+
+### 2025: We're Here Again
+
+AI agents can now:
+
+- Browse websites on behalf of users
+- Extract and synthesize data in real-time
+- Make purchases and execute actions
+- Interact through protocols like MCP, A2A, and WebMCP
+- Operate across tens of thousands of sites simultaneously
+
+But unlike search crawlers, agents need to do more than just read. They need to:
+
+- **Authenticate** — prove they are who they claim to be
+- **Request specific permissions** — not just "can I crawl?" but "can I make purchases?"
+- **Respect rate limits** — tailored to their identity and behavior
+- **Operate transparently** — so platforms can trust them
+
+**robots.txt can't do this.** It was designed for a read-only web crawled by a handful of known bots. The agentic web is read-write, permissioned, and involves thousands of agents with varying trust levels.
+
+We need a new standard. **We're at the robots.txt moment for AI agents.**
+
+## The Cost of Inaction
+
+Without standards, every interaction between agents and platforms becomes a negotiation. And negotiations at scale don't happen — they collapse into binary outcomes.
+
+### What We'll See Without APoP:
+
+**1. Legal Escalation**
+
+- More lawsuits like Amazon vs. Perplexity
+- Cease-and-desist letters blocking entire categories of agents
+- Fragmented national regulations creating compliance nightmares
+- Innovation stifled by legal uncertainty
+
+**2. Defensive Blocking**
+
+- Platforms blocking agents indiscriminately
+- Security systems erring on the side of denial
+- Legitimate use cases caught in the crossfire
+- Cat-and-mouse games as agents try to disguise themselves
+
+**3. Degraded User Experience**
+
+- Users lose access to AI assistants they trust
+- Unpredictable behavior across different sites
+- No transparency into why agents are blocked
+- Forced choice between privacy and functionality
+
+**4. Fragmented Infrastructure**
+
+- Every platform invents its own agent policy system
+- No interoperability between frameworks
+- Developers must integrate with dozens of proprietary APIs
+- Small platforms can't afford to participate
+
+**5. Trust Erosion**
+
+- Users don't know if agents are respecting boundaries
+- Platforms don't know if agents are who they claim to be
+- No accountability when violations occur
+- Reputation damage for the entire agent ecosystem
+
+## The Solution: Agent Policy Protocol
+
+APoP is **robots.txt for the agentic web.** It's a simple, open standard that creates mutual clarity between AI agents and websites.
+
+### How It Works
+
+**1. Websites Declare Policies**
+
+A website places an `agent-policy.json` file at its root:
+
+```json
+{
+  "version": "1.0",
+  "policies": [
+    {
+      "name": "Default Policy",
+      "match": {
+        "path": "/*"
+      },
+      "allow": ["read", "search"],
+      "deny": ["purchase", "modify"],
+      "rateLimit": {
+        "requests": 100,
+        "period": "1m"
+      },
+      "verification": {
+        "required": true,
+        "methods": ["did", "pkix"]
+      }
+    }
+  ]
+}
+```
+
+This file declares:
+
+- What actions are allowed/denied
+- Rate limits per agent or per action
+- Verification requirements
+- Path-specific rules
+
+**2. Agents Discover Policies**
+
+Before interacting with a site, agents:
+
+1. Fetch `https://example.com/agent-policy.json`
+2. Parse the policies
+3. Determine what actions they can perform
+4. Present verification credentials if required
+
+**3. Agents Identify Themselves**
+
+Using standard HTTP headers:
+
+```http
+Agent-Name: Comet/1.2.0
+Agent-Intent: search
+Agent-Identity: did:example:123456789abcdefghi
+Agent-Signature: <cryptographic signature>
+```
+
+Now the platform knows:
+
+- Who is accessing their site
+- What they're trying to do
+- How to verify their identity
+- How to enforce policies
+
+### What This Enables
+
+**Granular Control**
+
+Websites can set different policies for different agents:
+
+```json
+{
+  "agents": [
+    {
+      "id": "did:perplexity:comet",
+      "allow": ["read", "search"],
+      "rateLimit": { "requests": 1000, "period": "1h" }
+    },
+    {
+      "id": "did:openai:browsing",
+      "allow": ["read"],
+      "rateLimit": { "requests": 100, "period": "1h" }
+    }
+  ]
+}
+```
+
+**Transparent Verification**
+
+Agents prove their identity using:
+
+- **DIDs (Decentralized Identifiers)** — Web3-style verification
+- **PKIX certificates** — Traditional CA-based verification
+- **Verifiable Credentials** — W3C standard for claims
+
+**Automatic Enforcement**
+
+Middleware enforces policies automatically:
+
+```javascript
+import { apopMiddleware } from "@agent-policy-protocol/middleware";
+
+app.use(
+  apopMiddleware({
+    policyPath: "./agent-policy.json",
+    onViolation: (context) => {
+      console.log(
+        `Agent ${context.agentName} violated policy: ${context.reason}`,
+      );
+    },
+  }),
+);
+```
+
+**Interoperability**
+
+APoP is designed to work alongside:
+
+- **Model Context Protocol (MCP)** — Anthropic's standard for agent-tool communication
+- **W3C Agent Protocol** — Emerging standards from the Web standards body
+- **OAuth/OIDC** — Existing authentication infrastructure
+
+## Why Now Matters
+
+The Amazon-Perplexity lawsuit and Google's blocking of Comet aren't endpoints — they're starting points. As agentic AI becomes mainstream, we'll see:
+
+- **Thousands of specialized agents** — shopping, research, workflow automation, data extraction
+- **Millions of websites** — each needing to set boundaries
+- **Billions of interactions** — requiring real-time policy enforcement
+
+The infrastructure we build today will determine whether the agentic web becomes:
+
+**A collaborative ecosystem** — where innovation and ownership coexist through transparency, consent, and mutual benefit.
+
+**Or a fragmented battlefield** — where platforms and agents operate in opposition, users lose access to useful tools, and innovation is strangled by legal and technical friction.
+
+## This Isn't About Picking Sides
+
+APoP doesn't favor platforms over agents or vice versa. It creates infrastructure where both can thrive.
+
+**For Platforms:**
+
+- Retain full control over who accesses your content
+- Set granular, enforceable policies
+- Verify agent identity cryptographically
+- Protect your infrastructure without blanket blocking
+
+**For Agent Developers:**
+
+- Discover policies automatically
+- Prove your identity transparently
+- Avoid legal ambiguity
+- Build trust with platforms and users
+
+**For Users:**
+
+- Keep using AI assistants you trust
+- Know that boundaries are being respected
+- Benefit from innovation without platforms losing control
+- Transparency into when and why access is restricted
+
+## The Path Forward
+
+APoP is **open-source (Apache 2.0)** and **community-driven.** We're not trying to control this — we're trying to catalyze a standard the entire ecosystem can adopt.
+
+### What We're Building
+
+1. **Specification** — Clear technical standard with JSON schema
+2. **Reference Implementations** — SDKs for Node.js, Python, Go, Rust
+3. **Middleware** — Drop-in enforcement for Express, Next.js, Django, Rails
+4. **Verification Services** — Tools for managing agent identities and credentials
+5. **Conformance Tests** — Ensure implementations work together
+
+### How You Can Help
+
+- **Website Owners:** Adopt APoP and publish an agent policy
+- **Agent Developers:** Respect APoP policies and implement verification
+- **Framework Builders:** Integrate APoP into your platforms
+- **Standards Bodies:** Help refine the spec and ensure interoperability
+- **Community:** Star the repo, share feedback, contribute code
+
+## Conclusion: Consent at Scale
+
+The future of the web should be **agentic AND consensual.**
+
+AI agents are here to stay. They represent a fundamental shift in how people interact with information, services, and each other. We can't — and shouldn't — block them entirely.
+
+But we also can't have a web where agents operate without boundaries, where platforms have no control, and where consent is an afterthought.
+
+APoP creates the middle ground. It's the infrastructure layer that makes consent work at web scale. It's the passport system that lets agents travel the web while respecting sovereign boundaries.
+
+**We're at a choice point.** The decisions made in the next 6-12 months will shape the agentic web for the next decade.
+
+Let's choose clarity over conflict. Collaboration over litigation. Standards over silos.
+
+---
+
+## Get Involved
+
+- **Read the Spec:** [github.com/agent-policy-protocol/spec](https://github.com/agent-policy-protocol/spec)
+- **Implement APoP:** [agentpolicy.org/docs](https://agentpolicy.org/docs)
+- **Join the Discussion:** [GitHub Discussions](https://github.com/agent-policy-protocol/spec/discussions)
+- **Follow Updates:** [@agentpolicy](https://twitter.com/agentpolicy)
+
+The robots.txt moment for AI agents is happening now. Let's build it together.

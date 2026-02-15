@@ -80,10 +80,35 @@ const protocols = [
 
 export function EcosystemDiagram() {
   const [hoveredProtocol, setHoveredProtocol] = useState<string | null>(null);
+  const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
   const hoveredInfo = protocols.find((p) => p.id === hoveredProtocol);
 
   const topRow = protocols.filter((p) => p.row === 0);
   const bottomRow = protocols.filter((p) => p.row === 2);
+
+  const handleMouseEnter = (
+    protocol: (typeof protocols)[0],
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setHoveredProtocol(protocol.id);
+    const rect = event.currentTarget.getBoundingClientRect();
+    setPopoverPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.bottom + 10,
+    });
+  };
+
+  const handleFocus = (
+    protocol: (typeof protocols)[0],
+    event: React.FocusEvent<HTMLButtonElement>,
+  ) => {
+    setHoveredProtocol(protocol.id);
+    const rect = event.currentTarget.getBoundingClientRect();
+    setPopoverPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.bottom + 10,
+    });
+  };
 
   return (
     <div className="w-full max-w-3xl mx-auto mb-12">
@@ -93,11 +118,11 @@ export function EcosystemDiagram() {
           {topRow.map((protocol) => (
             <button
               key={protocol.id}
-              onMouseEnter={() => setHoveredProtocol(protocol.id)}
+              onMouseEnter={(e) => handleMouseEnter(protocol, e)}
               onMouseLeave={() => setHoveredProtocol(null)}
-              onFocus={() => setHoveredProtocol(protocol.id)}
+              onFocus={(e) => handleFocus(protocol, e)}
               onBlur={() => setHoveredProtocol(null)}
-              className={`rounded-lg border-2 px-4 py-2 text-sm font-semibold transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 ${protocol.color}`}
+              className={`rounded-lg border-2 px-4 py-2 text-sm font-semibold transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary ${protocol.color}`}
               aria-label={`${protocol.name}: ${protocol.purpose}`}
             >
               {protocol.name}
@@ -135,11 +160,11 @@ export function EcosystemDiagram() {
           {bottomRow.map((protocol) => (
             <button
               key={protocol.id}
-              onMouseEnter={() => setHoveredProtocol(protocol.id)}
+              onMouseEnter={(e) => handleMouseEnter(protocol, e)}
               onMouseLeave={() => setHoveredProtocol(null)}
-              onFocus={() => setHoveredProtocol(protocol.id)}
+              onFocus={(e) => handleFocus(protocol, e)}
               onBlur={() => setHoveredProtocol(null)}
-              className={`rounded-lg border-2 px-4 py-2 text-sm font-semibold transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 ${protocol.color}`}
+              className={`rounded-lg border-2 px-4 py-2 text-sm font-semibold transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary ${protocol.color}`}
               aria-label={`${protocol.name}: ${protocol.purpose}`}
             >
               {protocol.name}
@@ -147,32 +172,55 @@ export function EcosystemDiagram() {
           ))}
         </div>
 
-        {/* Tooltip */}
+        {/* Floating popover - appears on hover without affecting layout */}
         {hoveredInfo && (
-          <div className="mt-4 w-full max-w-md rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-4 shadow-lg transition-all">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="font-bold text-neutral-900 dark:text-white">
-                {hoveredInfo.name}
-              </span>
-              <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                by {hoveredInfo.author}
-              </span>
+          <div
+            className="fixed z-50 w-95 rounded-lg border border-border bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            style={{
+              left: `${popoverPosition.x}px`,
+              top: `${popoverPosition.y}px`,
+              transform: "translateX(-50%)",
+            }}
+            role="tooltip"
+          >
+            <div className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="font-bold text-lg text-foreground">
+                  {hoveredInfo.name}
+                </span>
+                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                  by {hoveredInfo.author}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                {hoveredInfo.purpose}
+              </p>
+              <div className="flex items-start gap-2 border-l-2 border-primary pl-3">
+                <span className="text-primary mt-0.5" aria-hidden="true">
+                  ↗
+                </span>
+                <p className="text-sm text-foreground font-medium leading-relaxed">
+                  {hoveredInfo.relation}
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-neutral-600 dark:text-neutral-300 mb-1">
-              {hoveredInfo.purpose}
-            </p>
-            <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-              ↗ {hoveredInfo.relation}
-            </p>
+            {/* Arrow pointing to button */}
+            <div
+              className="absolute w-3 h-3 bg-card border-l border-t border-border rotate-45"
+              style={{
+                left: "50%",
+                top: "-6px",
+                transform: "translateX(-50%)",
+              }}
+            />
           </div>
         )}
-
-        {!hoveredInfo && (
-          <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400 text-center">
-            Hover over a protocol to see how APoP integrates with it
-          </p>
-        )}
       </div>
+
+      {/* Hint text */}
+      <p className="mt-6 text-sm text-muted-foreground text-center">
+        Hover over a protocol to see how APoP integrates with it
+      </p>
     </div>
   );
 }

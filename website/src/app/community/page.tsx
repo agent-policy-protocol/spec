@@ -129,7 +129,9 @@ export default function CommunityPage() {
               Join the APoP Community
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto">
-              Help shape the future of AI agent authorization on the web.
+              Help build the authorization layer that creates mutual clarity
+              between AI agents and websites — enabling innovation on both
+              sides.
             </p>
           </div>
         </section>
