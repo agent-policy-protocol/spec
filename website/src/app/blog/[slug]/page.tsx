@@ -32,7 +32,7 @@ export async function generateMetadata(props: {
       authors: post.author ? [post.author.name] : undefined,
       images: [
         {
-          url: `/api/og?title=${encodeURIComponent(post.title)}&type=blog`,
+          url: `/api/og?title=${encodeURIComponent(post.title)}&type=blog&author=${encodeURIComponent(post.author?.name || "Arun Vijayarengan")}&date=${encodeURIComponent(new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}`,
           width: 1200,
           height: 630,
         },
@@ -42,6 +42,9 @@ export async function generateMetadata(props: {
       card: "summary_large_image",
       title: post.title,
       description: post.description,
+      images: [
+        `/api/og?title=${encodeURIComponent(post.title)}&type=blog&author=${encodeURIComponent(post.author?.name || "Arun Vijayarengan")}&date=${encodeURIComponent(new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }))}`,
+      ],
     },
   };
 }

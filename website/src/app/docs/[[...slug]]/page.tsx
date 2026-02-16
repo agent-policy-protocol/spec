@@ -125,6 +125,25 @@ export async function generateMetadata(props: {
   // Get lastModified from frontmatter if available
   const lastModified = (page.data as any).lastModified;
 
+  // Build section breadcrumb for OG image (e.g. "Docs / Getting Started / Installation")
+  const sectionParts = ["Docs"];
+  if (params.slug) {
+    params.slug.forEach((segment) => {
+      sectionParts.push(
+        segment
+          .split("-")
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" "),
+      );
+    });
+  }
+  const section = sectionParts.join(" / ");
+
+  const ogUrl = new URL("/api/og", "https://agentpolicy.org");
+  ogUrl.searchParams.set("title", page.data.title);
+  ogUrl.searchParams.set("type", "docs");
+  ogUrl.searchParams.set("section", section);
+
   return {
     title: page.data.title,
     description: page.data.description,
@@ -138,7 +157,7 @@ export async function generateMetadata(props: {
       ...(lastModified && { modifiedTime: lastModified }),
       images: [
         {
-          url: `/api/og?title=${encodeURIComponent(page.data.title)}&type=docs`,
+          url: ogUrl.pathname + ogUrl.search,
           width: 1200,
           height: 630,
         },
@@ -148,6 +167,7 @@ export async function generateMetadata(props: {
       card: "summary_large_image",
       title: page.data.title,
       description: page.data.description,
+      images: [ogUrl.pathname + ogUrl.search],
     },
   };
 }
