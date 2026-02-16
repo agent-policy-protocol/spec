@@ -49,7 +49,7 @@ export function Hero() {
 
             {/* Main headline - Refined and authoritative */}
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]">
+              <h1 className="text-4xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight leading-[1.1]">
                 <span className="block text-foreground">
                   The Authorization Layer
                 </span>
