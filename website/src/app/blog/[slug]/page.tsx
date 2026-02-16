@@ -21,6 +21,9 @@ export async function generateMetadata(props: {
   return {
     title: `${post.title} | APoP Blog`,
     description: post.description,
+    alternates: {
+      canonical: `https://agentpolicy.org/blog/${params.slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.description,
@@ -52,8 +55,42 @@ export default async function BlogPostPage(props: {
 
   const MDX = post.body;
 
+  // Article schema
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date,
+    dateModified: post.date,
+    author: post.author
+      ? {
+          "@type": "Person",
+          name: post.author.name,
+          jobTitle: post.author.title,
+          url: post.author.url,
+        }
+      : undefined,
+    publisher: {
+      "@type": "Organization",
+      name: "Superdom AI Research Labs",
+      url: "https://superdom.ai",
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://agentpolicy.org/blog/${post.slug}`,
+    },
+    image: post.image || "/og-image.png",
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(articleSchema),
+        }}
+      />
       <Header />
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
         <article>

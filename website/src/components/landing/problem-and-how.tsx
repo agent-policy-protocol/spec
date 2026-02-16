@@ -140,13 +140,13 @@ Agent-Intent: read, summarize`,
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
         <div className="mb-16">
           <div className="inline-flex items-center gap-2 border border-primary/30 bg-primary/5 px-4 py-2 rounded-full text-primary mb-6">
-            <h2 className="text-xs font-semibold uppercase tracking-wider">
+            <span className="text-xs font-semibold uppercase tracking-wider">
               How It Works
-            </h2>
+            </span>
           </div>
-          <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight max-w-2xl">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight max-w-2xl">
             Three Steps to Agent Authorization
-          </h3>
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

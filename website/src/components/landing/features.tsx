@@ -158,13 +158,13 @@ export function Features() {
         <div className="mb-16 space-y-4 max-w-3xl">
           <div className="inline-flex items-center gap-2 border border-primary/30 bg-primary/5 px-4 py-2 rounded-full text-primary">
             <Shield className="h-4 w-4" />
-            <h2 className="text-xs font-semibold uppercase tracking-wider">
+            <span className="text-xs font-semibold uppercase tracking-wider">
               Features
-            </h2>
+            </span>
           </div>
-          <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
             Everything You Need for the Agentic Web
-          </h3>
+          </h2>
           <p className="text-lg text-muted-foreground">
             A complete authorization framework for AI agent interactions
           </p>

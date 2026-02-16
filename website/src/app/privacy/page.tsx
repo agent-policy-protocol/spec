@@ -5,6 +5,9 @@ import { Footer } from "@/components/footer";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "Privacy policy for agentpolicy.org",
+  alternates: {
+    canonical: "https://agentpolicy.org/privacy",
+  },
 };
 
 export default function PrivacyPage() {

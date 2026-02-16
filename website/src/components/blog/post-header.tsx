@@ -53,20 +53,15 @@ export function PostHeader({
               </div>
             )}
             <div>
-              {author.url ? (
-                <a
-                  href={author.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-foreground hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
-                >
-                  {author.name}
-                </a>
-              ) : (
-                <span className="font-medium text-foreground">
-                  {author.name}
-                </span>
-              )}
+              <Link
+                href={`/blog/authors/${author.name
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")
+                  .replace(/[^\w-]+/g, "")}`}
+                className="font-medium text-foreground hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+              >
+                {author.name}
+              </Link>
               {author.title && (
                 <p className="text-xs text-muted-foreground">{author.title}</p>
               )}

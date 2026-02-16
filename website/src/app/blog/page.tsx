@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   title: "Blog — Agent Policy Protocol",
   description:
     "Insights, announcements, and guides about the Agent Policy Protocol and the agentic web.",
+  alternates: {
+    canonical: "https://agentpolicy.org/blog",
+  },
 };
 
 export default function BlogPage() {

@@ -32,6 +32,9 @@ export const metadata: Metadata = {
   description:
     "An open standard creating mutual clarity between AI agents and websites — enabling the agentic web with verified identity, transparent permissions, and rate limits.",
   metadataBase: new URL("https://agentpolicy.org"),
+  alternates: {
+    canonical: "https://agentpolicy.org",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",

@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   title: "About APoP - Origin Story",
   description:
     "How the Perplexity-Amazon conflict sparked the creation of the Agent Policy Protocol — a constructive path forward for the agentic web.",
+  alternates: {
+    canonical: "https://agentpolicy.org/about",
+  },
 };
 
 export default function AboutPage() {

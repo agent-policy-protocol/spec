@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   title: "Community",
   description:
     "Join the APoP community — contribute to the spec, build SDKs, and shape the future of AI agent authorization.",
+  alternates: {
+    canonical: "https://agentpolicy.org/community",
+  },
 };
 
 const communityCards = [

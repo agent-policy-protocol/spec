@@ -8,6 +8,7 @@ const footerLinks = {
     { href: "/docs/specification/overview", label: "Specification" },
     { href: "/docs/examples/news-publisher", label: "Examples" },
     { href: "/docs/guides/deploy-vercel", label: "Guides" },
+    { href: "/docs/faq", label: "FAQ" },
   ],
   Community: [
     {
@@ -21,6 +22,7 @@ const footerLinks = {
       external: true,
     },
     { href: "/about", label: "About" },
+    { href: "/blog", label: "Blog" },
     { href: "/docs/contributing/how-to-contribute", label: "Contributing" },
     {
       href: "https://github.com/agent-policy-protocol/spec/blob/main/CODE_OF_CONDUCT.md",

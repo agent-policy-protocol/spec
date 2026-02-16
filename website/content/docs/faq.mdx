@@ -1,0 +1,297 @@
+---
+title: Frequently Asked Questions
+description: Common questions about the Agent Policy Protocol (APoP) and how to implement it.
+lastModified: 2026-02-16
+---
+
+# Frequently Asked Questions
+
+Common questions about the Agent Policy Protocol and how to use it effectively.
+
+## General Questions
+
+### What is APoP?
+
+Agent Policy Protocol (APoP) is an open standard that enables websites to declare how AI agents can access and interact with their content. It provides a standardized way to specify permissions, rate limits, verification requirements, and interoperability with other protocols.
+
+### How is APoP different from robots.txt?
+
+While robots.txt provides simple crawl directives for search engines, APoP offers:
+
+- **Rich action vocabulary** — Beyond just "allow" and "disallow", APoP supports actions like read, summarize, extract, train, execute, and more
+- **Agent verification** — Support for cryptographic identity verification through PKIX, DID, and Verifiable Credentials
+- **Rate limiting** — Built-in request quotas with standard HTTP headers
+- **Protocol interoperability** — Links to MCP, A2A, WebMCP, and other agentic protocols
+- **Path-specific policies** — Different rules for different parts of your site
+- **JSON Schema validation** — Structured, machine-readable policies
+
+### Is APoP a replacement for robots.txt?
+
+No, APoP complements robots.txt. Robots.txt remains the standard for traditional web crawlers. APoP adds agent-specific authorization for the new generation of AI-powered interactions.
+
+### Who should implement APoP?
+
+APoP is valuable for:
+
+- **Content publishers** wanting to control how AI agents use their content
+- **SaaS platforms** offering agent-accessible APIs
+- **E-commerce sites** enabling AI-powered shopping assistants
+- **Healthcare and financial services** requiring verified agent identities
+- **Open data portals** encouraging agent access with clear terms
+
+## Implementation Questions
+
+### Where do I place my agent-policy.json file?
+
+The recommended location is:
+
+```
+https://yourdomain.com/.well-known/agent-policy.json
+```
+
+This follows the RFC 8615 well-known URI standard.
+
+### What's the minimum policy I need?
+
+A minimal policy only needs the version field:
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true
+  }
+}
+```
+
+However, we recommend also specifying allowed actions and rate limits.
+
+### How do I test my policy?
+
+Use the [APoP Playground](/playground) to:
+
+1. Build your policy with real-time validation
+2. Test against the JSON Schema
+3. Preview how agents will interpret it
+4. Export the validated policy
+
+You can also validate programmatically using our SDKs or the JSON Schema directly.
+
+### Do I need to implement all four discovery methods?
+
+No. The well-known URI is sufficient for most cases:
+
+```
+GET /.well-known/agent-policy.json
+```
+
+Additional discovery methods (HTTP header, HTML meta, DNS TXT) provide redundancy and flexibility for different deployment scenarios.
+
+## Policy Configuration Questions
+
+### How do I allow reading but prevent training?
+
+Use the action-based policy:
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "summarize", "index"],
+    "disallowedActions": ["train", "extract"]
+  }
+}
+```
+
+### Can I have different policies for different paths?
+
+Yes, use `pathPolicies`:
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": { "allow": false },
+  "pathPolicies": [
+    {
+      "path": "/blog/*",
+      "allow": true,
+      "actions": ["read", "summarize"]
+    },
+    {
+      "path": "/api/*",
+      "allow": true,
+      "actions": ["api_call"],
+      "rateLimit": { "requests": 100, "window": "hour" }
+    }
+  ]
+}
+```
+
+### How do I require agent verification?
+
+Enable verification in your policy:
+
+```json
+{
+  "version": "1.0",
+  "verification": {
+    "required": true,
+    "methods": ["pkix", "did"],
+    "trustedIssuers": ["https://agents.example.com/registry"]
+  },
+  "defaultPolicy": {
+    "allow": true
+  }
+}
+```
+
+Agents must then provide cryptographic proof of identity via the `Agent-Verification` header.
+
+### What are good rate limit values?
+
+It depends on your use case:
+
+- **Public blogs**: 30-100 requests/hour
+- **Documentation sites**: 100-500 requests/hour
+- **APIs**: 1000-10000 requests/day (with tiered limits)
+- **High-security sites**: 10-50 requests/hour with verification
+
+Start conservative and adjust based on your server capacity and agent behavior.
+
+## Agent Questions
+
+### How do agents discover my policy?
+
+Agents use a four-method waterfall:
+
+1. **Well-known URI** — GET `/.well-known/agent-policy.json`
+2. **HTTP Header** — Check `Agent-Policy` header in responses
+3. **HTML Meta** — Parse `<meta name="agent-policy">` tags
+4. **DNS TXT** — Query `_agentpolicy.yourdomain.com`
+
+The first method that succeeds is used.
+
+### What if an agent ignores my policy?
+
+APoP is designed as a consent and clarity mechanism, not enforcement. However:
+
+- Legitimate agents respect policies to maintain ecosystem trust
+- You can use standard web protections (firewalls, rate limiting, IP blocks)
+- Custom HTTP status codes (430, 438, 439) help agents understand violations
+- Verified agent identity enables accountability
+
+### Can I allowlist specific agents?
+
+Yes, use the `agentPolicies` field:
+
+```json
+{
+  "version": "1.0",
+  "agentPolicies": [
+    {
+      "userAgent": "MyTrustedAgent/1.0",
+      "allow": true,
+      "actions": ["all"],
+      "rateLimit": { "requests": 1000, "window": "hour" }
+    }
+  ],
+  "defaultPolicy": {
+    "allow": false
+  }
+}
+```
+
+## Integration Questions
+
+### Does APoP work with MCP (Model Context Protocol)?
+
+Yes! APoP includes `protocolLinks` for interoperability:
+
+```json
+{
+  "version": "1.0",
+  "protocolLinks": {
+    "mcp": "https://yourdomain.com/.well-known/mcp.json"
+  }
+}
+```
+
+This links to your MCP endpoint, enabling agents to discover both authorization policies and available tools.
+
+### How do I integrate APoP with my Next.js app?
+
+Use the official Node.js SDK:
+
+```bash
+npm install @apop/sdk
+```
+
+Then add middleware:
+
+```typescript
+import { apopMiddleware } from "@apop/sdk/middleware";
+
+export const config = {
+  matcher: ["/api/:path*"],
+};
+
+export default apopMiddleware({
+  policyPath: "./.well-known/agent-policy.json",
+});
+```
+
+See the [Next.js integration guide](/docs/guides/nextjs) for details.
+
+### Is there a WordPress plugin?
+
+Not yet, but it's on the roadmap. In the meantime, you can manually place your `agent-policy.json` file in the WordPress site root or use the [WordPress integration guide](/docs/guides/wordpress).
+
+## Schema and Specification Questions
+
+### Where can I find the JSON Schema?
+
+The schema is available at:
+
+- **URL**: https://agentpolicy.org/schema/agent-policy.schema.json
+- **Within policy**: Use `"$schema"` field for IDE autocompletion
+
+### Is APoP versioned?
+
+Yes. The current version is **1.0**. All policies must include:
+
+```json
+{
+  "version": "1.0"
+}
+```
+
+Future versions will be backward compatible when possible, with clear migration guides.
+
+### How can I contribute to the spec?
+
+See our [Contributing Guide](/docs/contributing/overview). We welcome:
+
+- Spec proposals via GitHub issues
+- SDK improvements via pull requests
+- Example policies for different use cases
+- Community feedback and questions
+
+---
+
+## See Also
+
+- **[Quick Start Guide](/docs/introduction/quick-start)** — Get APoP running in 5 minutes
+- **[Policy Playground](/playground)** — Build and test policies interactively
+- **[Specification Overview](/docs/specification/overview)** — Complete technical specification
+- **[Real-World Examples](/docs/examples/news-publisher)** — Policies for different use cases
+- **[Integration Guides](/docs/guides/nextjs)** — Framework-specific setup instructions
+- **[Contributing](/docs/contributing/overview)** — Help improve APoP
+
+---
+
+## Still have questions?
+
+- **GitHub Discussions**: [Ask the community](https://github.com/agent-policy-protocol/spec/discussions)
+- **Discord**: [Join the conversation](https://discord.gg/agentpolicy)
+- **Email**: [contact@agentpolicy.org](mailto:contact@agentpolicy.org)
