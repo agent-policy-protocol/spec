@@ -23,7 +23,7 @@ import {
 export const metadata: Metadata = {
   title: "Community",
   description:
-    "Join the APoP community — contribute to the spec, build SDKs, and shape the future of AI agent authorization.",
+    "Join developers building the agentic web. Contribute to APoP on GitHub, chat on Discord, and help shape AI agent authorization standards. Open to all.",
   alternates: {
     canonical: "https://agentpolicy.org/community",
   },

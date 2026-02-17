@@ -28,7 +28,7 @@ But without clear rules, agents guess what’s allowed — leading to legal conf
 
 ## How APoP Works
 
-APoP uses a JSON document — `agent-policy.json` — served at a well-known URL. Here's a minimal example:
+APoP uses a JSON document — `agent-policy.json` — served at a [well-known URL](/docs/specification/discovery). Here's a minimal example:
 
 ```json
 {
@@ -44,20 +44,24 @@ This says: agents may read and navigate the site, but they may not use the conte
 
 ### Discovery
 
-Agents discover your policy through four methods:
+Agents [discover your policy](/docs/specification/discovery) through four methods:
 
 1. **Well-Known URI**: `GET /.well-known/agent-policy.json`
 2. **HTTP Header**: `Agent-Policy: /.well-known/agent-policy.json`
 3. **HTML Meta Tag**: `<meta name="agent-policy" content="...">`
 4. **DNS TXT Record**: `_agentpolicy.example.com TXT "policy_url=..."`
 
+Learn more about [discovery methods in the specification](/docs/specification/discovery).
+
 ### Agent Identity
 
-APoP defines three identity tiers:
+APoP defines [three identity tiers](/docs/specification/agent-identification):
 
 - **Self-declared**: Agent sends its name and version in HTTP headers
 - **Verified**: Agent proves identity via PKIX certificates or DID
 - **Trusted**: Agent is on an allowlist in your policy
+
+See the [agent identification spec](/docs/specification/agent-identification) for implementation details.
 
 ```json
 {
@@ -71,7 +75,7 @@ APoP defines three identity tiers:
 
 ### Action Vocabulary
 
-APoP defines a rich set of actions that go beyond "allow" and "disallow":
+APoP defines a [rich set of actions](/docs/specification/schema-reference#actions) that go beyond "allow" and "disallow":
 
 | Action      | Description                       |
 | ----------- | --------------------------------- |

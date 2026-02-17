@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     template: "%s | APoP",
   },
   description:
-    "An open standard creating mutual clarity between AI agents and websites — enabling the agentic web with verified identity, transparent permissions, and rate limits.",
+    "Define how AI agents access your website with APoP — the open standard for agent authorization. Verify identity, set permissions, limit rates. Free & open source.",
   metadataBase: new URL("https://agentpolicy.org"),
   alternates: {
     canonical: "https://agentpolicy.org",

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Policy Playground",
   description:
-    "Interactive playground for creating and testing Agent Policy Protocol configurations. Build, validate, and export your agent-policy.json file.",
+    "Build and validate your agent-policy.json file in seconds. Interactive editor with 9 templates, real-time validation, and one-click export. Try it free.",
   alternates: {
     canonical: "https://agentpolicy.org/playground",
   },

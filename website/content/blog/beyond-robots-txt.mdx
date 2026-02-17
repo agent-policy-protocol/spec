@@ -49,7 +49,9 @@ These aren't shortcomings of `robots.txt` — they're requirements from a differ
 
 ## Introducing Agent Policy Protocol
 
-The **Agent Policy Protocol (APoP)** is an open standard designed to complement `robots.txt` for the agentic web. While `robots.txt` handles crawl control, APoP handles agent authorization — using a structured JSON document placed at `/.well-known/agent-policy.json`.
+The **Agent Policy Protocol (APoP)** is an [open standard](/docs/introduction/what-is-apop) designed to complement `robots.txt` for the agentic web. While `robots.txt` handles crawl control, APoP handles agent authorization — using a structured JSON document placed at `/.well-known/agent-policy.json`.
+
+Learn more in our [quick start guide](/docs/introduction/quick-start) or explore [real-world examples](/docs/examples/news-publisher).
 
 ```json
 {
@@ -72,9 +74,9 @@ The **Agent Policy Protocol (APoP)** is an open standard designed to complement 
 This single document expresses what goes beyond crawl rules:
 
 - **Intent-based permissions** — allow reading but deny summarization
-- **Identity requirements** — require agents to identify themselves with cryptographic verification
+- **Identity requirements** — require [agents to identify themselves](/docs/specification/agent-identification) with cryptographic verification
 - **Rate limits** — per-path, per-agent request limits
-- **Action vocabulary** — read, summarize, extract, train, navigate, execute, and more
+- **Action vocabulary** — read, summarize, extract, train, navigate, execute, [and more](/docs/specification/schema-reference#actions)
 
 ## The Path Forward
 
@@ -84,6 +86,8 @@ Website owners deserve a standard that matches the sophistication of the agents 
 
 The question isn't whether `robots.txt` is enough. It's whether we add the authorization layer that AI agents need before the gap becomes a crisis.
 
-**[Read the APoP specification →](/docs)**
+**[Read the APoP specification →](/docs/specification/overview)**
 
 **[Try the interactive playground →](/playground)**
+
+**[See implementation guides →](/docs/guides/nextjs)**

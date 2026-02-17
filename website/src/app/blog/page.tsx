@@ -9,7 +9,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Blog — Agent Policy Protocol",
   description:
-    "Insights, announcements, and guides about the Agent Policy Protocol and the agentic web.",
+    "Learn how to implement APoP, protect your website from unauthorized AI agents, and enable the agentic web. Tutorials, case studies & best practices.",
   alternates: {
     canonical: "https://agentpolicy.org/blog",
   },
