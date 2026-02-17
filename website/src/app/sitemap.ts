@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { source } from "@/lib/source";
+import { getBlogPosts } from "@/lib/blog";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://agentpolicy.org";
@@ -46,5 +47,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...docsPages];
+  // Blog posts
+  const blogPages: MetadataRoute.Sitemap = getBlogPosts().map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(post.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...docsPages, ...blogPages];
 }
