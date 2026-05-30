@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import jsonschema
 
@@ -276,8 +276,8 @@ class ParseResult:
     """Result of parsing and validating an APoP policy."""
 
     valid: bool
-    policy: Optional[AgentPolicy] = None
-    errors: Optional[list[ValidationError]] = None
+    policy: AgentPolicy | None = None
+    errors: list[ValidationError] | None = None
 
 
 # ---------------------------------------------------------------------------

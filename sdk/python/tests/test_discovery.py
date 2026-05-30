@@ -7,7 +7,6 @@ import pytest
 
 from apop.discovery import DiscoveryOptions, discover_policy
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -59,19 +58,6 @@ class TestDiscoverPolicy:
     @pytest.mark.asyncio
     async def test_discover_from_http_header(self):
         policy_url = "https://example.com/custom/policy.json"
-        transport = _make_mock_transport({
-            "/.well-known/agent-policy.json": httpx.Response(404),
-            "example.com/custom/policy.json": httpx.Response(
-                200,
-                text=VALID_POLICY_JSON,
-                headers={"content-type": "application/json"},
-            ),
-            "example.com/": httpx.Response(
-                200,
-                text="<html></html>",
-                headers={"Agent-Policy": policy_url},
-            ),
-        })
 
         # Need special handling since the root URL and well-known URL overlap
         call_count = {"root": 0}

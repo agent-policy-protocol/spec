@@ -23,12 +23,13 @@ Usage::
 from __future__ import annotations
 
 import json
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from apop.enforcer import enforce
 from apop.headers import is_agent, parse_request_headers
 from apop.parser import parse_policy, parse_policy_file
-from apop.types import AgentPolicy, MiddlewareOptions, RequestContext
+from apop.types import AgentPolicy, RequestContext
 
 
 class APoPMiddleware:
@@ -87,7 +88,7 @@ class APoPMiddleware:
         assert self._policy is not None
 
         # Parse agent headers from Django request
-        headers: dict[str, str] = {}
+        headers: dict[str, str | list[str] | None] = {}
         for key, value in request.META.items():
             if key.startswith("HTTP_"):
                 # Convert HTTP_AGENT_NAME → agent-name

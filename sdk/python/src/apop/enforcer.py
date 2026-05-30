@@ -16,20 +16,18 @@ Enforcement logic order:
 
 from __future__ import annotations
 
-from typing import Any
-
-from apop.types import (
-    AgentPolicy,
-    EnforcementResult,
-    RequestContext,
-    VerificationMethod,
-)
-from apop.matcher import match_path_policy, merge_policy
 from apop.headers import (
     build_allowed_headers,
     build_denied_headers,
     build_verification_headers,
     parse_intents,
+)
+from apop.matcher import match_path_policy, merge_policy
+from apop.types import (
+    AgentPolicy,
+    EnforcementResult,
+    RequestContext,
+    VerificationMethod,
 )
 
 

@@ -26,11 +26,11 @@ Or as a dependency::
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from apop.enforcer import enforce
 from apop.headers import is_agent, parse_request_headers
-from apop.types import AgentPolicy, EnforcementResult, MiddlewareOptions
+from apop.types import AgentPolicy, MiddlewareOptions
 
 
 def create_fastapi_middleware(
@@ -56,7 +56,7 @@ def create_fastapi_middleware(
             create_fastapi_middleware(MiddlewareOptions(policy=policy))
         )
     """
-    from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
     from starlette.requests import Request
     from starlette.responses import JSONResponse, Response
 
@@ -64,7 +64,9 @@ def create_fastapi_middleware(
     skip_non_agents = options.skip_non_agents
 
     class APoPMiddleware(BaseHTTPMiddleware):
-        async def dispatch(self, request: Request, call_next: Any) -> Response:
+        async def dispatch(
+            self, request: Request, call_next: RequestResponseEndpoint
+        ) -> Response:
             # Set discovery headers on all responses
             agent_headers = parse_request_headers(dict(request.headers))
 

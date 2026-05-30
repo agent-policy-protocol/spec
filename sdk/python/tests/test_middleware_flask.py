@@ -1,6 +1,5 @@
 """Tests for apop.middleware.flask — Flask Middleware."""
 
-import json
 
 import pytest
 
@@ -12,7 +11,6 @@ from apop.types import (
     RateLimit,
     Verification,
 )
-
 
 TEST_POLICY = AgentPolicy(
     version="1.0",

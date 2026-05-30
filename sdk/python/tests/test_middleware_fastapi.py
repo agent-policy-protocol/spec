@@ -1,6 +1,5 @@
 """Tests for apop.middleware.fastapi — FastAPI/Starlette Middleware."""
 
-import json
 
 import pytest
 
@@ -12,7 +11,6 @@ from apop.types import (
     RateLimit,
     Verification,
 )
-
 
 TEST_POLICY = AgentPolicy(
     version="1.0",
@@ -41,9 +39,8 @@ def app():
     """Create a test FastAPI app with APoP middleware."""
     try:
         from fastapi import FastAPI
-        from fastapi.testclient import TestClient
 
-        from apop.middleware.fastapi import create_fastapi_middleware, create_discovery_route
+        from apop.middleware.fastapi import create_discovery_route, create_fastapi_middleware
 
         app = FastAPI()
         app.add_middleware(

@@ -15,7 +15,7 @@ Response headers (from server):
 
 from __future__ import annotations
 
-from typing import Optional
+from collections.abc import Sequence
 
 from apop.types import (
     AgentRequestHeaders,
@@ -82,7 +82,7 @@ def is_agent(headers: AgentRequestHeaders) -> bool:
     return bool(headers.agent_name)
 
 
-def parse_intents(intent_header: Optional[str]) -> list[str]:
+def parse_intents(intent_header: str | None) -> list[str]:
     """
     Parse the Agent-Intent header value into a list of intent strings.
 
@@ -103,8 +103,8 @@ def parse_intents(intent_header: Optional[str]) -> list[str]:
 
 
 def build_discovery_headers(
-    policy_url: Optional[str] = None,
-    version: Optional[str] = None,
+    policy_url: str | None = None,
+    version: str | None = None,
 ) -> AgentResponseHeaders:
     """
     Build base discovery/version response headers for every APoP-aware response.
@@ -119,12 +119,12 @@ def build_discovery_headers(
 
 def build_allowed_headers(
     *,
-    policy_url: Optional[str] = None,
-    version: Optional[str] = None,
-    actions: Optional[list[str]] = None,
-    rate_limit: Optional[RateLimit] = None,
-    rate_remaining: Optional[int] = None,
-    rate_reset: Optional[str] = None,
+    policy_url: str | None = None,
+    version: str | None = None,
+    actions: Sequence[str] | None = None,
+    rate_limit: RateLimit | None = None,
+    rate_remaining: int | None = None,
+    rate_reset: str | None = None,
 ) -> AgentResponseHeaders:
     """Build response headers for a successful (allowed) request."""
     headers = {
@@ -148,8 +148,8 @@ def build_allowed_headers(
 
 def build_denied_headers(
     *,
-    policy_url: Optional[str] = None,
-    version: Optional[str] = None,
+    policy_url: str | None = None,
+    version: str | None = None,
 ) -> AgentResponseHeaders:
     """Build response headers for a denied (430) response."""
     return {
@@ -160,10 +160,10 @@ def build_denied_headers(
 
 def build_verification_headers(
     *,
-    policy_url: Optional[str] = None,
-    version: Optional[str] = None,
+    policy_url: str | None = None,
+    version: str | None = None,
     methods: list[VerificationMethod],
-    verify_endpoint: Optional[str] = None,
+    verify_endpoint: str | None = None,
 ) -> AgentResponseHeaders:
     """Build response headers for a verification-required (439) response."""
     headers: AgentResponseHeaders = {
@@ -178,11 +178,11 @@ def build_verification_headers(
 
 def build_rate_limited_headers(
     *,
-    policy_url: Optional[str] = None,
-    version: Optional[str] = None,
+    policy_url: str | None = None,
+    version: str | None = None,
     rate_limit: RateLimit,
     retry_after: int,
-    rate_reset: Optional[str] = None,
+    rate_reset: str | None = None,
 ) -> AgentResponseHeaders:
     """Build response headers for a rate-limited (438) response."""
     headers: AgentResponseHeaders = {

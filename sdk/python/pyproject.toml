@@ -58,6 +58,7 @@ dev = [
     "pytest-httpx>=0.30.0",
     "ruff>=0.1.0",
     "mypy>=1.7.0",
+    "types-jsonschema>=4.20.0",
     "fastapi>=0.100.0",
     "starlette>=0.27.0",
     "flask>=2.3.0",
@@ -88,3 +89,16 @@ select = ["E", "F", "I", "N", "W", "UP"]
 [tool.mypy]
 python_version = "3.10"
 strict = true
+
+# Optional third-party frameworks/resolvers imported lazily inside the
+# middleware and discovery modules. They are not hard dependencies and may
+# ship without type stubs, so we don't fail the strict check on them.
+[[tool.mypy.overrides]]
+module = ["dns.*", "django.*"]
+ignore_missing_imports = true
+
+# Flask's app decorators are untyped when the app is passed in as `Any`
+# (we don't import Flask at module scope to keep it an optional dependency).
+[[tool.mypy.overrides]]
+module = ["apop.middleware.flask"]
+disallow_untyped_decorators = false

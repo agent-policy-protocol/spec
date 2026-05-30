@@ -14,8 +14,9 @@ from __future__ import annotations
 
 import asyncio
 import re
-from dataclasses import dataclass, field
-from typing import Any, Callable, Coroutine, Optional
+from collections.abc import Callable, Coroutine
+from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
@@ -33,16 +34,16 @@ class DiscoveryOptions:
     max_retries: int = 3
     """Maximum retries for 5xx errors on well-known URI. Default: 3."""
 
-    http_client: Optional[httpx.AsyncClient] = None
+    http_client: httpx.AsyncClient | None = None
     """Custom httpx async client (for testing). Defaults to creating a new one."""
 
-    dns_resolve: Optional[Callable[[str, str], Coroutine[Any, Any, list[list[str]]]]] = None
+    dns_resolve: Callable[[str, str], Coroutine[Any, Any, list[list[str]]]] | None = None
     """Custom DNS resolver (for testing). Defaults to dnspython or asyncio resolver."""
 
 
 async def discover_policy(
     domain: str,
-    options: Optional[DiscoveryOptions] = None,
+    options: DiscoveryOptions | None = None,
 ) -> DiscoveryResult:
     """
     Discover the APoP policy for a domain using the 4-method fallback chain.
@@ -99,7 +100,7 @@ async def _try_well_known(
     url: str,
     client: httpx.AsyncClient,
     max_retries: int,
-) -> Optional[DiscoveryResult]:
+) -> DiscoveryResult | None:
     for attempt in range(max_retries + 1):
         try:
             response = await client.get(url)
@@ -140,7 +141,7 @@ async def _try_well_known(
 async def _try_http_header(
     domain: str,
     client: httpx.AsyncClient,
-) -> Optional[DiscoveryResult]:
+) -> DiscoveryResult | None:
     try:
         response = await client.get(f"https://{domain}/")
         policy_header = response.headers.get("agent-policy") or response.headers.get(
@@ -162,7 +163,7 @@ async def _try_http_header(
 async def _try_meta_tag(
     domain: str,
     client: httpx.AsyncClient,
-) -> Optional[DiscoveryResult]:
+) -> DiscoveryResult | None:
     try:
         response = await client.get(f"https://{domain}/")
         html = response.text
@@ -196,8 +197,8 @@ async def _try_meta_tag(
 async def _try_dns_txt(
     domain: str,
     client: httpx.AsyncClient,
-    custom_resolve: Optional[Callable[..., Coroutine[Any, Any, list[list[str]]]]] = None,
-) -> Optional[DiscoveryResult]:
+    custom_resolve: Callable[..., Coroutine[Any, Any, list[list[str]]]] | None = None,
+) -> DiscoveryResult | None:
     try:
         records: list[list[str]]
 
@@ -206,20 +207,24 @@ async def _try_dns_txt(
         else:
             # Use asyncio DNS resolver
             try:
-                import dns.asyncresolver  # type: ignore[import-untyped]
+                import dns.asyncresolver
 
                 answers = await dns.asyncresolver.resolve(f"_agentpolicy.{domain}", "TXT")
-                records = [[rdata.to_text().strip('"') for rdata in answer.strings] for answer in answers]  # type: ignore[attr-defined]
+                records = [
+                    [rdata.to_text().strip('"') for rdata in answer.strings]
+                    for answer in answers
+                ]
             except ImportError:
                 # Fallback: use socket-level resolution (limited)
                 loop = asyncio.get_event_loop()
                 try:
                     import socket
 
-                    result = await loop.getaddrinfo(
+                    # getaddrinfo can't resolve TXT records; this only confirms
+                    # the host resolves before we skip the DNS discovery step.
+                    await loop.getaddrinfo(
                         f"_agentpolicy.{domain}", None, type=socket.SOCK_STREAM
                     )
-                    # getaddrinfo can't resolve TXT records; skip DNS step
                     return None
                 except (socket.gaierror, OSError):
                     return None
@@ -252,7 +257,7 @@ async def _fetch_and_parse_policy(
     url: str,
     method: str,
     client: httpx.AsyncClient,
-) -> Optional[DiscoveryResult]:
+) -> DiscoveryResult | None:
     try:
         response = await client.get(url)
         if response.status_code != 200:

@@ -1,6 +1,5 @@
 """Tests for apop.enforcer — Policy Enforcement Engine."""
 
-import pytest
 
 from apop.enforcer import enforce
 from apop.types import (
@@ -11,7 +10,6 @@ from apop.types import (
     RequestContext,
     Verification,
 )
-
 
 # ---------------------------------------------------------------------------
 # Test Policy

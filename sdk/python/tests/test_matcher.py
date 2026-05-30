@@ -5,7 +5,6 @@ import pytest
 from apop.matcher import match_path_policy, merge_policy, path_matches
 from apop.types import AgentPolicy, PathPolicy, PolicyRule, RateLimit
 
-
 # ---------------------------------------------------------------------------
 # pathMatches tests
 # ---------------------------------------------------------------------------

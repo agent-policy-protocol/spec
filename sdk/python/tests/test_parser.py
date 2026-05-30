@@ -2,10 +2,7 @@
 
 import json
 
-import pytest
-
 from apop.parser import get_schema, parse_policy, validate_policy
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

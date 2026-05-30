@@ -9,24 +9,22 @@ Implements glob-style path matching per the APoP specification:
 
 from __future__ import annotations
 
-from copy import copy
-from dataclasses import dataclass, field, fields
-from typing import Optional
+from dataclasses import dataclass
 
-from apop.types import AgentPolicy, PathPolicy, PolicyRule, RateLimit
+from apop.types import ActionType, AgentPolicy, PathPolicy, PolicyRule, RateLimit
 
 
 @dataclass
 class MergedPolicy:
     """A PolicyRule merged with path-specific overrides, including allow/deny lists."""
 
-    allow: bool | list[str]
-    disallow: Optional[list[str]] = None
-    actions: Optional[list[str]] = None
-    rate_limit: Optional[RateLimit] = None
+    allow: bool | list[ActionType]
+    disallow: list[ActionType] | None = None
+    actions: list[ActionType] | None = None
+    rate_limit: RateLimit | None = None
     require_verification: bool = False
-    agent_allowlist: Optional[list[str]] = None
-    agent_denylist: Optional[list[str]] = None
+    agent_allowlist: list[str] | None = None
+    agent_denylist: list[str] | None = None
 
 
 def path_matches(url_path: str, pattern: str) -> bool:
@@ -55,7 +53,7 @@ def path_matches(url_path: str, pattern: str) -> bool:
     return url_path == pattern
 
 
-def match_path_policy(policy: AgentPolicy, url_path: str) -> Optional[PathPolicy]:
+def match_path_policy(policy: AgentPolicy, url_path: str) -> PathPolicy | None:
     """
     Find the first matching PathPolicy for a given URL path.
 
@@ -78,7 +76,7 @@ def match_path_policy(policy: AgentPolicy, url_path: str) -> Optional[PathPolicy
 
 def merge_policy(
     default_policy: PolicyRule,
-    path_rule: Optional[PathPolicy],
+    path_rule: PathPolicy | None,
 ) -> MergedPolicy:
     """
     Merge the defaultPolicy with a path-specific policy override.
@@ -105,7 +103,11 @@ def merge_policy(
         allow=path_rule.allow if path_rule.allow is not None else default_policy.allow,
         disallow=path_rule.disallow if path_rule.disallow is not None else default_policy.disallow,
         actions=path_rule.actions if path_rule.actions is not None else default_policy.actions,
-        rate_limit=path_rule.rate_limit if path_rule.rate_limit is not None else default_policy.rate_limit,
+        rate_limit=(
+            path_rule.rate_limit
+            if path_rule.rate_limit is not None
+            else default_policy.rate_limit
+        ),
         require_verification=(
             path_rule.require_verification
             if path_rule.require_verification is not None

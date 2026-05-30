@@ -1,6 +1,5 @@
 """Tests for apop.headers — Header Parsing & Building."""
 
-import pytest
 
 from apop.headers import (
     build_allowed_headers,
@@ -13,7 +12,6 @@ from apop.headers import (
     parse_request_headers,
 )
 from apop.types import AgentRequestHeaders, RateLimit
-
 
 # ---------------------------------------------------------------------------
 # parseRequestHeaders tests
