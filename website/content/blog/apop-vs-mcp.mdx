@@ -1,0 +1,560 @@
+---
+title: "When to Use APoP vs MCP: Protocol Comparison Guide"
+description: "Understand the difference between Agent Policy Protocol (APoP) and Model Context Protocol (MCP). Learn when to use each and how they work together to enable the agentic web."
+date: "2026-02-17"
+author:
+  name: "Arun Vijayarengan"
+  title: "Founder & CEO, Superdom AI"
+  url: "https://www.linkedin.com/in/arunvijayarengan"
+  avatar: "/authors/arun.jpg"
+tags: ["comparison", "MCP", "protocols"]
+---
+
+Model Context Protocol (MCP) and Agent Policy Protocol (APoP) are both essential for the agentic web, but they solve different problems. Confusing them is common — let's clear it up.
+
+**TL;DR:** MCP defines **what agents can do** (tool definitions, capabilities). APoP defines **what agents are allowed to do** (authorization, permissions). Use MCP to expose functionality. Use APoP to control how it's accessed.
+
+## The Core Difference
+
+### MCP: Capability Layer
+
+**MCP answers:** "What can AI agents do on my platform?"
+
+MCP (developed by Anthropic) provides a standardized way for AI agents to:
+
+- Discover available tools and resources
+- Execute functions on your server
+- Access data sources with context
+- Integrate with applications
+
+**Example MCP manifest:**
+
+```json
+{
+  "name": "Task Manager",
+  "tools": [
+    {
+      "name": "createTask",
+      "description": "Create a new task",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "dueDate": { "type": "string" }
+        }
+      }
+    }
+  ]
+}
+```
+
+This tells agents: "Here's a tool you can use to create tasks."
+
+### APoP: Authorization Layer
+
+**APoP answers:** "What are agents allowed to do on my platform?"
+
+APoP provides a standardized way to:
+
+- Declare authorization policies
+- Set rate limits and quotas
+- Require identity verification
+- Control actions per path or agent
+
+**Example APoP policy:**
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "summarize"],
+    "disallowedActions": ["execute", "write"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  }
+}
+```
+
+This tells agents: "You can read and summarize, but not execute tools or write data. And stay under 100 requests/hour."
+
+## Key Differences
+
+| Aspect           | MCP                            | APoP                          |
+| ---------------- | ------------------------------ | ----------------------------- |
+| **Purpose**      | Capability definition          | Authorization control         |
+| **Answers**      | "What can I do?"               | "What am I allowed to do?"    |
+| **Focus**        | Tool discovery & execution     | Permission & rate limiting    |
+| **Scope**        | Application-specific functions | Cross-application boundaries  |
+| **Required For** | Agents using your tools        | All agent interactions        |
+| **Identity**     | May assume trusted context     | Cryptographic verification    |
+| **Discovery**    | MCP manifest endpoint          | .well-known/agent-policy.json |
+
+## When to Use Each
+
+### Use MCP When:
+
+- ✅ You're building **tools for AI agents** to execute
+- ✅ You want agents to **call functions** on your server
+- ✅ You're exposing **structured APIs** with typed schemas
+- ✅ Agents need to **discover capabilities** dynamically
+- ✅ You're integrating with **Claude Desktop** or MCP-enabled clients
+
+**Examples:**
+
+- Task management systems (create, update, delete tasks)
+- Calendar APIs (schedule meetings, check availability)
+- Database queries (read data with natural language)
+- Code execution environments
+- File system access
+
+### Use APoP When:
+
+- ✅ You need to **control what agents can access**
+- ✅ You want **rate limiting** and quota management
+- ✅ You need **path-specific policies** (/api/public vs /api/admin)
+- ✅ You want differentiation between **action types** (read vs. train)
+- ✅ You require **verified agent identity**
+- ✅ You want to **link multiple protocols** (MCP, A2A, OpenAPI)
+
+**Examples:**
+
+- Content platforms (allow reading, block training)
+- SaaS APIs (enforce rate limits per agent)
+- E-commerce sites (control purchase actions)
+- Documentation sites (allow indexing, control scraping)
+- Healthcare systems (require verification, audit access)
+
+### Use Both When:
+
+- ✅ You're exposing **MCP tools** but need **authorization control**
+- ✅ Agents should **discover tools** and **know the rules**
+- ✅ You want **functionality + safety** for the agentic web
+
+## How They Work Together
+
+APoP and MCP are **complementary protocols**. Here's how they integrate:
+
+### Example: Task Management API
+
+**APoP Policy (agent-policy.json):**
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  },
+  "pathPolicies": [
+    {
+      "path": "/api/tasks/*",
+      "allow": true,
+      "actions": ["read", "write", "execute"],
+      "verification": { "required": true },
+      "rateLimit": { "requests": 500, "window": "hour" }
+    }
+  ],
+  "protocolLinks": {
+    "mcp": "https://example.com/.well-known/mcp.json"
+  }
+}
+```
+
+**MCP Manifest (mcp.json):**
+
+```json
+{
+  "name": "Task Manager",
+  "version": "1.0",
+  "tools": [
+    {
+      "name": "listTasks",
+      "description": "List all tasks for the authenticated user",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["open", "completed"] }
+        }
+      }
+    },
+    {
+      "name": "createTask",
+      "description": "Create a new task",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "dueDate": { "type": "string", "format": "date" }
+        },
+        "required": ["title"]
+      }
+    }
+  ]
+}
+```
+
+### Agent Flow:
+
+1. **Agent discovers APoP policy** at `/.well-known/agent-policy.json`
+   - Learns: verification required for `/api/tasks/*`
+   - Learns: rate limit is 500 req/hour
+   - Learns: MCP endpoint is available
+
+2. **Agent authenticates** via PKIX/DID (APoP verification)
+
+3. **Agent discovers MCP tools** at `/.well-known/mcp.json`
+   - Learns: `listTasks` and `createTask` tools exist
+   - Learns: input schemas for each tool
+
+4. **Agent executes MCP tool** with APoP rate limits respected
+
+   ```
+   POST /api/tasks/createTask
+   Headers:
+     Agent-Verification: <cryptographic-proof>
+     Content-Type: application/json
+   Body: { "title": "Call Bob", "dueDate": "2026-02-20" }
+   ```
+
+5. **Server validates**:
+   - ✅ Agent identity (APoP verification)
+   - ✅ Rate limit not exceeded (APoP)
+   - ✅ Action "execute" is allowed (APoP)
+   - ✅ Tool exists and input is valid (MCP)
+
+**Result:** Agent can use MCP tools **within APoP boundaries**.
+
+## Real-World Scenarios
+
+### Scenario 1: Public Documentation Site
+
+**Need:** Index docs for AI search, no tools to execute
+
+**Solution:** APoP only
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "navigate", "summarize"],
+    "rateLimit": { "requests": 500, "window": "hour" }
+  }
+}
+```
+
+**Why not MCP?** No tools to execute. Content is passive. APoP declares boundaries.
+
+### Scenario 2: AI Assistant Platform
+
+**Need:** Expose calendar/email tools for AI agents to execute
+
+**Solution:** MCP + APoP
+
+**APoP:**
+
+```json
+{
+  "version": "1.0",
+  "pathPolicies": [
+    {
+      "path": "/mcp/*",
+      "allow": true,
+      "actions": ["execute"],
+      "verification": { "required": true },
+      "rateLimit": { "requests": 1000, "window": "day" }
+    }
+  ],
+  "protocolLinks": {
+    "mcp": "https://assistant.example.com/.well-known/mcp.json"
+  }
+}
+```
+
+**MCP:**
+
+```json
+{
+  "name": "Personal Assistant",
+  "tools": [
+    { "name": "scheduleEvent", "description": "..." },
+    { "name": "sendEmail", "description": "..." },
+    { "name": "searchContacts", "description": "..." }
+  ]
+}
+```
+
+**Why both?** MCP defines tools. APoP controls who can use them and how often.
+
+### Scenario 3: Open Data Portal
+
+**Need:** Public dataset for research, allow large-scale downloads
+
+**Solution:** APoP with generous limits
+
+```json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "extract", "download"],
+    "requireVerification": true,
+    "rateLimit": { "requests": 100000, "window": "day" }
+  }
+}
+```
+
+**Why not MCP?** Data is static files, no tools. APoP provides transparency and attribution via verification.
+
+### Scenario 4: SaaS API with Agent-Specific Features
+
+**Need:** Standard REST API + agent-friendly MCP tools
+
+**Solution:** OpenAPI + MCP + APoP
+
+**APoP:**
+
+```json
+{
+  "version": "1.0",
+  "pathPolicies": [
+    {
+      "path": "/api/v1/*",
+      "allow": true,
+      "actions": ["api_call"],
+      "rateLimit": { "requests": 10000, "window": "day" }
+    },
+    {
+      "path": "/mcp/*",
+      "allow": true,
+      "actions": ["execute"],
+      "verification": { "required": true }
+    }
+  ],
+  "protocolLinks": {
+    "openapi": "https://api.example.com/openapi.json",
+    "mcp": "https://api.example.com/.well-known/mcp.json"
+  }
+}
+```
+
+**Why all three?** OpenAPI for standard HTTP clients. MCP for AI-native tool calling. APoP for authorization across both.
+
+## Architecture Comparison
+
+### MCP Architecture
+
+```
+┌─────────────┐
+│   AI Agent  │
+└──────┬──────┘
+       │ 1. Discover tools
+       ↓
+┌──────────────────┐
+│  MCP Manifest    │  (tool definitions, schemas)
+└──────┬───────────┘
+       │ 2. Call tool
+       ↓
+┌──────────────────┐
+│   MCP Server     │  (executes tool, returns result)
+└──────────────────┘
+```
+
+### APoP Architecture
+
+```
+┌─────────────┐
+│   AI Agent  │
+└──────┬──────┘
+       │ 1. Discover policy
+       ↓
+┌──────────────────┐
+│  agent-policy.json│  (permissions, rate limits)
+└──────┬───────────┘
+       │ 2. Make request (respecting policy)
+       ↓
+┌──────────────────┐
+│  Website/API     │  (enforces policy, returns content)
+└──────────────────┘
+```
+
+### Combined Architecture
+
+```
+┌─────────────┐
+│   AI Agent  │
+└──────┬──────┘
+       │ 1. Discover APoP policy
+       ↓
+┌──────────────────┐
+│ agent-policy.json│  (protocolLinks → mcp)
+└──────┬───────────┘
+       │ 2. Authenticate (if required)
+       │
+       │ 3. Discover MCP tools
+       ↓
+┌──────────────────┐
+│  mcp.json        │  (tool definitions)
+└──────┬───────────┘
+       │ 4. Execute MCP tool (within APoP rate limits)
+       ↓
+┌──────────────────┐
+│  MCP Server      │  (validates APoP policy + executes)
+└──────────────────┘
+```
+
+## Common Misconceptions
+
+### "MCP replaces APoP"
+
+**False.** MCP defines **capabilities**. APoP defines **authorization**. Think of MCP as "here's what I can do" and APoP as "here's what you're allowed to do."
+
+### "APoP is only for static content"
+
+**False.** APoP works for APIs, MCP servers, and dynamic applications. It's authorization, not content type.
+
+### "I need to choose between MCP and APoP"
+
+**False.** Use both. MCP for tool exposure, APoP for authorization control.
+
+### "MCP handles permissions"
+
+**Partially.** MCP can include auth in tool definitions, but it's not designed for cross-application policy declarations like APoP.
+
+### "APoP defines tools"
+
+**False.** APoP declares what's allowed. Use MCP, OpenAPI, or GraphQL to define tools/APIs.
+
+## Decision Framework
+
+Ask yourself:
+
+### "Am I exposing executable tools for agents?"
+
+- **Yes** → Use MCP (+ APoP for authorization)
+- **No** → APoP may be sufficient
+
+### "Do I need path-specific authorization rules?"
+
+- **Yes** → Use APoP
+- **No, tools are self-contained** → MCP may be sufficient
+
+### "Do I need rate limiting across my whole domain?"
+
+- **Yes** → Use APoP
+- **No, per-tool limits are fine** → MCP rate limits may suffice
+
+### "Do agents need to discover multiple protocols on my site?"
+
+- **Yes** → Use APoP with `protocolLinks` to reference MCP, OpenAPI, A2A, etc.
+- **No, single protocol** → Just that protocol's manifest
+
+### "Do I need cryptographic agent identity verification?"
+
+- **Yes** → Use APoP verification
+- **No, ambient auth is fine** → Standard auth + MCP
+
+## Integration Patterns
+
+### Pattern 1: MCP-First (Tool Platform)
+
+```json
+// agent-policy.json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["execute"],
+    "verification": { "required": true }
+  },
+  "protocolLinks": {
+    "mcp": "/.well-known/mcp.json"
+  }
+}
+```
+
+**Use case:** AI assistant platform where all interactions are MCP tool calls.
+
+### Pattern 2: APoP-First (Content Platform)
+
+```json
+// agent-policy.json
+{
+  "version": "1.0",
+  "defaultPolicy": {
+    "allow": true,
+    "actions": ["read", "summarize"],
+    "rateLimit": { "requests": 100, "window": "hour" }
+  }
+}
+```
+
+**Use case:** Blog or docs site with no MCP tools. Pure content access control.
+
+### Pattern 3: Hybrid (Multi-Protocol API)
+
+```json
+// agent-policy.json
+{
+  "version": "1.0",
+  "pathPolicies": [
+    {
+      "path": "/content/*",
+      "allow": true,
+      "actions": ["read", "summarize"]
+    },
+    {
+      "path": "/mcp/*",
+      "allow": true,
+      "actions": ["execute"],
+      "verification": { "required": true }
+    },
+    {
+      "path": "/api/*",
+      "allow": true,
+      "actions": ["api_call"]
+    }
+  ],
+  "protocolLinks": {
+    "mcp": "/.well-known/mcp.json",
+    "openapi": "/api/openapi.json"
+  }
+}
+```
+
+**Use case:** Comprehensive platform with content, APIs, and MCP tools — all under one APoP policy.
+
+## Summary
+
+| MCP                         | APoP                                         |
+| --------------------------- | -------------------------------------------- |
+| **What** capabilities exist | **What** is allowed                          |
+| Tool definitions            | Authorization rules                          |
+| Function schemas            | Permission policies                          |
+| Application-specific        | Cross-application                            |
+| Execution layer             | Policy layer                                 |
+| Discovered via MCP manifest | Discovered via .well-known/agent-policy.json |
+
+**Best Practice:** Use APoP as the **front door** that points to MCP (and other protocols). Agents discover authorization first, then capabilities.
+
+```
+Agent → APoP policy → "Execute allowed, verify identity, check MCP link"
+      → Authenticates
+      → MCP manifest → "Here are the tools you can use"
+      → Executes tool (within APoP rate limits)
+```
+
+---
+
+## Learn More
+
+- **[APoP Specification](/docs/specification/overview)** — Full technical specification
+- **[MCP Protocol](https://modelcontextprotocol.io)** — Anthropic's Model Context Protocol
+- **[Protocol Interoperability](/docs/specification/protocol-links)** — Linking APoP with MCP, A2A, and others
+- **[Integration Guides](/docs/guides/nextjs)** — Implement APoP + MCP together
+
+---
+
+**Questions?** Join the conversation on [GitHub](https://github.com/agent-policy-protocol/spec/discussions) or [Discord](https://discord.gg/agentpolicy).
