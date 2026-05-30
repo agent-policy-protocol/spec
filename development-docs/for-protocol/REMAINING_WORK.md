@@ -124,22 +124,22 @@ Build production-quality middleware and SDKs that demonstrate the v1.0 spec in p
 
 **Output files**: `sdk/node/**`
 
-### 2.2 Python SDK (`sdk/python/`)
+### 2.2 Python SDK (`sdk/python/`) ✅
 
 **Action Plan**:
 
-- [ ] Create `sdk/python/` package
-- [ ] `apop/parser.py` — Policy parsing and Pydantic validation
-- [ ] `apop/discovery.py` — Discovery chain implementation (httpx + dnspython)
-- [ ] `apop/matcher.py` — Path matching engine (fnmatch-style)
-- [ ] `apop/enforcer.py` — Policy enforcement logic
-- [ ] `apop/headers.py` — Header parsing/generation
-- [ ] `apop/middleware/fastapi.py` — FastAPI middleware
-- [ ] `apop/middleware/flask.py` — Flask middleware
-- [ ] `apop/middleware/django.py` — Django middleware
-- [ ] `apop/agent.py` — Agent-side SDK (discover + respect policies when crawling)
-- [ ] `tests/` — pytest test suite
-- [ ] `pyproject.toml`, `README.md`
+- [x] Create `sdk/python/` package
+- [x] `apop/parser.py` — Policy parsing and JSON Schema validation (jsonschema)
+- [x] `apop/discovery.py` — Discovery chain implementation (httpx async)
+- [x] `apop/matcher.py` — Path matching engine (glob-style with /\* and /\*\*)
+- [x] `apop/enforcer.py` — Policy enforcement logic (7-step enforcement)
+- [x] `apop/headers.py` — Header parsing/generation
+- [x] `apop/middleware/fastapi.py` — FastAPI middleware (Starlette BaseHTTPMiddleware)
+- [x] `apop/middleware/flask.py` — Flask middleware (before_request/after_request)
+- [x] `apop/middleware/django.py` — Django middleware (middleware class)
+- [x] `apop/types.py` — Type definitions (dataclasses)
+- [x] `tests/` — pytest test suite (107 tests across 7 files)
+- [x] `pyproject.toml`, `README.md`
 - [ ] Publish as `apop` on PyPI
 
 **Output files**: `sdk/python/**`
@@ -426,29 +426,28 @@ See strategic roadmap for pricing model: Free / Pro ($49/mo) / Business ($199/mo
 
 ## Priority Matrix
 
-| Phase                                            | Priority    | Est. Effort | Dependencies | Status         |
-| ------------------------------------------------ | ----------- | ----------- | ------------ | -------------- |
-| **Phase 1 gaps**: README, examples, tests, CI/CD | CRITICAL    | 2-3 days    | None         | ✅ Complete    |
-| Phase 2: Reference Implementations               | HIGH        | 2 weeks     | Phase 1      | ⬜ Not started |
-| Phase 3: Validator & Testing Tools               | HIGH        | 1 week      | Phase 1      | ⬜ Not started |
-| Phase 4: Interop Bridges                         | MEDIUM-HIGH | 2 weeks     | Phase 2      | ⬜ Not started |
-| Phase 5: Registry & Trust                        | MEDIUM      | 2 weeks     | Phase 2      | ⬜ Not started |
-| Phase 6: Docs & Website                          | MEDIUM      | 1 week      | Phase 1      | ⬜ Not started |
-| Phase 7: Standards Track                         | MEDIUM      | Ongoing     | Phase 1      | ⬜ Not started |
-| Phase 8: Production                              | MEDIUM      | 2 weeks     | Phase 2, 3   | ⬜ Not started |
+| Phase                                            | Priority    | Est. Effort | Dependencies | Status                                                       |
+| ------------------------------------------------ | ----------- | ----------- | ------------ | ------------------------------------------------------------ |
+| **Phase 1 gaps**: README, examples, tests, CI/CD | CRITICAL    | 2-3 days    | None         | ✅ Complete                                                  |
+| Phase 2: Reference Implementations               | HIGH        | 2 weeks     | Phase 1      | 🟡 Mostly Complete (SDKs done, middleware migration pending) |
+| Phase 3: Validator & Testing Tools               | HIGH        | 1 week      | Phase 1      | ⬜ Not started                                               |
+| Phase 4: Interop Bridges                         | MEDIUM-HIGH | 2 weeks     | Phase 2      | ⬜ Not started                                               |
+| Phase 5: Registry & Trust                        | MEDIUM      | 2 weeks     | Phase 2      | ⬜ Not started                                               |
+| Phase 6: Docs & Website                          | MEDIUM      | 1 week      | Phase 1      | ⬜ Not started                                               |
+| Phase 7: Standards Track                         | MEDIUM      | Ongoing     | Phase 1      | ⬜ Not started                                               |
+| Phase 8: Production                              | MEDIUM      | 2 weeks     | Phase 2, 3   | ⬜ Not started                                               |
 
 ---
 
 ## Immediate Next Steps (Recommended Order)
 
-1. **Phase 1.1** — Update root `README.md` for v1.0 (10 min, unblocks all adoption)
-2. **Phase 1.2** — Create 5+ example policies (30 min, proves schema flexibility)
-3. **Phase 1.3** — Conformance test suite (2-3 hours, validates middleware correctness)
-4. **Phase 1.4** — GitHub Actions CI/CD (30 min, enables quality gates)
-5. **Phase 2.1** — Node.js SDK with TypeScript (highest-impact deliverable)
-6. **Phase 3.1** — CLI validator (quick win, useful for testing)
-7. **Phase 4.1** — MCP → APoP bridge (strongest ecosystem integration play)
-8. **Phase 6.2** — "Getting Started" guide (lowers adoption barrier)
+1. **Phase 2.2** — Python SDK ✅ Complete (107 tests passing)
+2. **Phase 2.3** — Migrate existing middleware to use Node.js SDK (1-2 hours, consolidates code)
+3. **Publish SDKs** — Publish `@apop/node` to npm and `apop` to PyPI (1 day, enables adoption)
+4. **Phase 3.1** — CLI validator (quick win, useful for testing)
+5. **Phase 4.1** — MCP → APoP bridge (strongest ecosystem integration play)
+6. **Phase 6.2** — "Getting Started" guide (lowers adoption barrier)
+7. **Phase 6.2** — "Getting Started" guide (lowers adoption barrier)
 
 ---
 

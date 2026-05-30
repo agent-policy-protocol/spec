@@ -5,7 +5,7 @@
 **Version**: 1.0  
 **Date**: February 14, 2026  
 **Status**: Pre-Launch  
-**Owner**: Karthikeyan Vaiyapuri (Superdom AI)
+**Owner**: Arun Vijayarengan (Superdom AI)
 
 ---
 
@@ -1032,5 +1032,5 @@ This isn't just a protocol. It's the governance layer for the next 30 years of t
 **Document License**: CC BY 4.0 (Attribution)  
 **Repository**: https://github.com/agent-policy-protocol/spec  
 **Website**: https://agentpolicy.org (coming soon)  
-**Contact**: Karthikeyan Vaiyapuri, Founder/CTO, Superdom AI  
+**Contact**: Arun Vijayarengan, Founder & CEO, Superdom AI  
 **Last Updated**: February 14, 2026
